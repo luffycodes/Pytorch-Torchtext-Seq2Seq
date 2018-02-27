@@ -121,7 +121,7 @@ class DataPreprocessor(object):
 
         dataset = MaxlenTranslationDataset(
             path=data_path,
-            exts=(exts),
+            exts=exts,
             fields=(self.src_field, self.trg_field),
             max_len=max_len)
 
