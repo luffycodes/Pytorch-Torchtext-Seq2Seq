@@ -1,10 +1,13 @@
 import random
 
+
 def tensor2np(tensor):
     return tensor.data.cpu().numpy()
 
+
 def randomChoice(batch_size):
     return random.randint(0, batch_size - 1)
+
 
 class AverageMeter(object):
     """
@@ -12,6 +15,7 @@ class AverageMeter(object):
     Borrowed from ImageNet training in PyTorch project
     https://github.com/pytorch/examples/tree/master/imagenet
     """
+
     def __init__(self):
         self.reset()
 
