@@ -15,9 +15,9 @@ class Encoder(nn.Module):
         self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=True, )
         
     def forward(self, source, src_length=None, hidden=None):
-        '''
-        source: B x T 
-        '''
+        """
+        source: B x T
+        """
         batch_size = source.size(0)
         src_embed = self.embedding(source)
         
