@@ -97,19 +97,21 @@ class Trainer(object):
 
                 src_input = batch.src[0]
                 src_length = batch.src[1]
-                trg_input = batch.trg[0][:, :-1]
-                trg_output = batch.trg[0][:, 1:]
+                trg_input = batch.trg[0]
                 trg_length = batch.trg[1]
+
+                trg_output = batch.trg[0][:, 1:]
                 batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
-                decoder_logit = self.model(src_input, src_length.tolist(), trg_input)
-                pred = decoder_logit.view(batch_size, trg_len, -1)
+                decoder_logit, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
+                                                             trg_length.tolist())
 
                 self.optimizer.zero_grad()
-                loss = self.criterion(decoder_logit, trg_output.contiguous().view(-1))
                 loss.backward()
-                torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
                 self.optimizer.step()
+                pred = decoder_logit.view(batch_size, trg_len, -1)
+                loss = self.criterion(decoder_logit, trg_output.contiguous().view(-1))
+                torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
 
                 # Compute BLEU score and Loss
                 pred_sents = []

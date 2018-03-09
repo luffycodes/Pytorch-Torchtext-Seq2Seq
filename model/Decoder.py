@@ -6,88 +6,49 @@ import torch.nn.functional as F
 from utils import *
 from model import *
 
+'''
+https://github.com/allenai/allennlp
+1. Encoder_base.py
+- "this class provides functionality for sorting sequences by length" - gets directed to nn.util.py
+2. PytorchSeq2VecWrapper.py
+- get last state of the lstm
+3. nn.util.py - sort_batch_by_length
+'''
+
 
 class Decoder(nn.Module):
-    def __init__(self, vocab_size, embed_dim, hidden_dim, max_len, trg_soi):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_layers=2):
         super(Decoder, self).__init__()
+        self.num_layers = num_layers
         self.hidden_dim = hidden_dim
-        self.max_len = max_len
-        self.vocab_size = vocab_size
-        self.trg_soi = trg_soi
 
-        self.embed = nn.Embedding(vocab_size, embed_dim)
-        self.attention = Attention(hidden_dim)
-        self.decodercell = DecoderCell(embed_dim, hidden_dim)
-        self.dec2word = nn.Linear(hidden_dim, vocab_size)
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.bidir = True
+        self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, )
 
-    def forward(self, enc_h, prev_s, target=None):
-        """
-        enc_h  : B x S x 2*H
-        prev_s : B x H
-        """
+    def forward(self, target, trg_length=None, hidden=None):
+        batch_size = target.size(0)
+        sorted_inputs, sorted_seq_len, restoration_indices, _ = sort_batch_by_length(target, Variable(torch.FloatTensor(trg_length)))
 
-        if target is not None:
-            batch_size, target_len = target.size(0), target.size(1)
+        src_embed = self.embedding(sorted_inputs)
 
-            dec_h = Variable(torch.zeros(batch_size, target_len, self.hidden_dim))
+        if hidden is None:
+            h_size = (self.num_layers *2, batch_size, self.hidden_dim)
+            enc_h_0 = Variable(src_embed.data.new(*h_size).zero_(), requires_grad=False)
 
-            if torch.cuda.is_available():
-                dec_h = dec_h.cuda()
+        seq_length = [int(x) for x in sorted_seq_len.data.numpy().tolist()]
+        src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, seq_length, batch_first=True)
+        enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
-            target = self.embed(target)
-            for i in range(target_len):
-                ctx = self.attention(enc_h, prev_s)
-                prev_s = self.decodercell(target[:, i], prev_s, ctx)
-                dec_h[:, i, :] = prev_s.unsqueeze(1)
+        # enc_h, _ = nn.utils.rnn.pad_packed_sequence(enc_h, batch_first=True)
 
-            outputs = self.dec2word(dec_h)
+        unsorted_state = enc_h_t.transpose(0, 1).index_select(0, restoration_indices)
 
-        else:
-            batch_size = enc_h.size(0)
-            target = Variable(torch.LongTensor([self.trg_soi] * batch_size), volatile=True).view(batch_size, 1)
-            outputs = Variable(torch.zeros(batch_size, self.max_len, self.vocab_size))
+        try:
+            last_state_index = 2 if self.bidir else 1
+        except AttributeError:
+            last_state_index = 1
 
-            if torch.cuda.is_available():
-                target = target.cuda()
-                outputs = outputs.cuda()
+        last_layer_state = unsorted_state[:, -last_state_index:, :]
 
-            for i in range(self.max_len):
-                target = self.embed(target).squeeze(1)
-                ctx = self.attention(enc_h, prev_s)
-                prev_s = self.decodercell(target, prev_s, ctx)
-                output = self.dec2word(prev_s)
-                outputs[:, i, :] = output
-                target = output.topk(1)[1]
-
-        return outputs
-
-
-class DecoderCell(nn.Module):
-    def __init__(self, embed_dim, hidden_dim):
-        super(DecoderCell, self).__init__()
-
-        self.input_weights = nn.Linear(embed_dim, hidden_dim * 2)
-        self.hidden_weights = nn.Linear(hidden_dim, hidden_dim * 2)
-        self.ctx_weights = nn.Linear(hidden_dim * 2, hidden_dim * 2)
-
-        self.input_in = nn.Linear(embed_dim, hidden_dim)
-        self.hidden_in = nn.Linear(hidden_dim, hidden_dim)
-        self.ctx_in = nn.Linear(hidden_dim * 2, hidden_dim)
-
-    def forward(self, trg_word, prev_s, ctx):
-        """
-        trg_word : B x E
-        prev_s   : B x H
-        ctx      : B x 2*H
-        """
-        gates = self.input_weights(trg_word) + self.hidden_weights(prev_s) + self.ctx_weights(ctx)
-        reset_gate, update_gate = gates.chunk(2, 1)
-
-        reset_gate = F.sigmoid(reset_gate)
-        update_gate = F.sigmoid(update_gate)
-
-        prev_s_tilde = self.input_in(trg_word) + self.hidden_in(prev_s) + self.ctx_in(ctx)
-        prev_s_tilde = F.tanh(prev_s_tilde)
-
-        prev_s = torch.mul((1 - reset_gate), prev_s) + torch.mul(reset_gate, prev_s_tilde)
-        return prev_s
+        return enc_h, last_layer_state
