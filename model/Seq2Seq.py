@@ -16,7 +16,6 @@ class Seq2Seq(nn.Module):
         self.trg_nword = trg_nword
 
         self.encoder = Encoder(src_nword, embed_dim, hidden_dim)
-        self.linear = nn.Linear(hidden_dim, hidden_dim)
         self.decoder = Decoder(trg_nword, embed_dim, hidden_dim)
 
     def forward(self, source, src_length=None, target=None, trg_length=None):
