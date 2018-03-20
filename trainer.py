@@ -32,7 +32,7 @@ class Trainer(object):
 
         # Path
         self.data_path = args.data_path
-        self.log_path = os.path.join('./logs/' + args.log)
+        self.log_path = os.path.join(args.log_path + args.log)
 
         if not os.path.exists(self.log_path): os.makedirs(self.log_path)
 
@@ -80,7 +80,7 @@ class Trainer(object):
 
         # set the criterion and optimizer
         self.criterion = nn.NLLLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        self.optimizer = optim.Adam(self.model.parameters())
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, 1, gamma=0.8)
 
         if torch.cuda.is_available():
@@ -117,7 +117,7 @@ class Trainer(object):
 
                 self.train_loss.update(loss.data[0] / (batch_size * batch_size), 1)
 
-                if i % 3 == 0:
+                if i % 100 == 0:
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
