@@ -90,7 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--log_path', type=str, default=('%s/' % model_results))
 
     # Dir.
-    parser.add_argument('--log', type=str, default='log')
+    parser.add_argument('--log', type=str, default='tfEvents')
     parser.add_argument('--sample', type=str, default='sample')
 
     # Misc.

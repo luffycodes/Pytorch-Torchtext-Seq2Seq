@@ -59,6 +59,11 @@ class Trainer(object):
         logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
         consoleHandler.setFormatter(logFormatter)
         self.console_logger.addHandler(consoleHandler)
+
+        fileHandler = logging.FileHandler("{0}/{1}.log".format(args.log_path, "console"))
+        fileHandler.setFormatter(logFormatter)
+        self.console_logger.addHandler(fileHandler)
+
         self.console_logger.propagate = False
 
         self.build_model(vocabs)
