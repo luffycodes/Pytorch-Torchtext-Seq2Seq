@@ -115,7 +115,7 @@ class Trainer(object):
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
                 self.optimizer.step()
 
-                self.train_loss.update(loss.data[0], batch_size * batch_size)
+                self.train_loss.update(loss.data[0] / (batch_size * batch_size), 1)
 
                 if i % 3 == 0:
                     self.log_train_result(epoch, i, start_time)
@@ -154,7 +154,7 @@ class Trainer(object):
             _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
                                                    trg_length.tolist())
 
-            val_loss.update(loss, batch_size * batch_size)
+            val_loss.update(loss / (batch_size * batch_size), 1)
 
         self.log_valid_result(epoch, train_iter, val_loss.avg, start_time)
 
