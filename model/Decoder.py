@@ -36,7 +36,7 @@ class Decoder(nn.Module):
             h_size = (self.num_layers *2, batch_size, self.hidden_dim)
             enc_h_0 = Variable(src_embed.data.new(*h_size).zero_(), requires_grad=False)
 
-        seq_length = [int(x) for x in sorted_seq_len.data.numpy().tolist()]
+        seq_length = [int(x) for x in sorted_seq_len.cpu().data.numpy().tolist()]
         src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, seq_length, batch_first=True)
         enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
