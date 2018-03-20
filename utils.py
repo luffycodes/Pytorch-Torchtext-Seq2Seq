@@ -60,10 +60,6 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
     # sequence lengths and returning the now sorted indices.
     index_range = Variable(index_range.long())
     _, reverse_mapping = permutation_index.sort(0, descending=False)
-
-    if torch.cuda.is_available():
-        reverse_mapping = reverse_mapping.cuda()
-
     restoration_indices = index_range.index_select(0, reverse_mapping)
 
     if torch.cuda.is_available():
