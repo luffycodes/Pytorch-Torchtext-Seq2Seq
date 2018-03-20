@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 from torch.backends import cudnn
+import configparser as con
 
 from prepro import *
 from trainer import *
@@ -35,19 +36,30 @@ def main(args):
     print("val: ", len(val_dataset))
     print("=================================")
 
-    train_loader = dt.BucketIterator(dataset=train_dataset, batch_size=args.batch_size,
-                                     repeat=False, shuffle=True, sort_within_batch=True,
-                                     sort_key=lambda x: len(x.src), device=-1)
-    val_loader = dt.BucketIterator(dataset=val_dataset, batch_size=args.batch_size,
-                                   repeat=False, shuffle=True, sort_within_batch=True,
-                                   sort_key=lambda x: len(x.src), device=-1)
-
-    trainer = Trainer(train_loader, val_loader, vocabs, args)
-    trainer.train()
+    # train_loader = dt.BucketIterator(dataset=train_dataset, batch_size=args.batch_size,
+    #                                  repeat=False, shuffle=True, sort_within_batch=True,
+    #                                  sort_key=lambda x: len(x.src), device=-1)
+    # val_loader = dt.BucketIterator(dataset=val_dataset, batch_size=args.batch_size,
+    #                                repeat=False, shuffle=True, sort_within_batch=True,
+    #                                sort_key=lambda x: len(x.src), device=-1)
+    #
+    # trainer = Trainer(train_loader, val_loader, vocabs, args)
+    # trainer.train()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--server', type=bool, default=True)
+    server = parser.parse_args().server
+
+    config = con.ConfigParser()
+    config.sections()
+    if server:
+        config.read('/root/pythonProjects/Pytorch-Torchtext-Seq2Seq/configFile.ini')
+        MACHINE = "SERVER"
+    else:
+        config.read('/home/zoro/PycharmProjects/OtherGitRepo/Pytorch-Torchtext-Seq2Seq/configFile.ini')
+        MACHINE = "DEFAULT"
 
     # Language setting
     parser.add_argument('--dataset', type=str, default='europarl')
@@ -67,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_epoch', type=int, default=100)
 
     # Path
-    data = '/home/zoro/Documents/OpenStaxData/OtherGitRepoData/Pytorch-Torchtext-Seq2Seq/data'
+    data = config[MACHINE]['translation_data_location']
     parser.add_argument('--data_path', type=str, default=('%s/' % data))
     parser.add_argument('--train_path', type=str, default=('%s/training/europarl-v7.fr-en' % data))
     parser.add_argument('--val_path', type=str, default=('%s/dev/newstest2013' % data))
