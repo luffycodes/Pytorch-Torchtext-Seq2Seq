@@ -84,8 +84,8 @@ class DataPreprocessor(object):
         val_dataset = data.Dataset(fields=fields, examples=val_examples)
 
         # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, max_size=30000)
-        self.trg_field.build_vocab(train_dataset, max_size=30000)
+        self.src_field.build_vocab(train_dataset, max_size=500000)
+        self.trg_field.build_vocab(train_dataset, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
         vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,
