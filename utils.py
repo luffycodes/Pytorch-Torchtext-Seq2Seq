@@ -13,8 +13,6 @@ def randomChoice(batch_size):
 
 
 def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
-    print("inside of sort_batch_by_length")
-
     """
     Sort a batch first tensor by some specified lengths.
 
@@ -55,8 +53,6 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
     index_range = Variable(index_range.long()).cuda()
     _, reverse_mapping = permutation_index.sort(0, descending=False)
     restoration_indices = index_range.index_select(0, reverse_mapping)
-
-    print("out of sort_batch_by_length")
 
     return sorted_tensor, sorted_sequence_lengths, restoration_indices, permutation_index
 
