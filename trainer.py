@@ -116,7 +116,7 @@ class Trainer(object):
                 _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
                                                                    trg_length.tolist())
 
-                print("loss ", loss.data[0])
+                print("loss::", loss.data[0])
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
