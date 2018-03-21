@@ -53,7 +53,7 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
 
     index_range = Variable(index_range.long())
     if torch.cuda.is_available():
-        index_range = Variable(index_range.long()).cuda()
+        index_range = index_range.cuda()
 
     _, reverse_mapping = permutation_index.sort(0, descending=False)
     restoration_indices = index_range.index_select(0, reverse_mapping)
