@@ -102,7 +102,6 @@ class Trainer(object):
             start_time = time.time()
 
             for i, batch in enumerate(self.train_loader):
-                self.console_logger.debug("epoch:%d, i:%d", epoch, i)
                 self.model.train()
 
                 src_input = batch.src[0]
@@ -122,7 +121,8 @@ class Trainer(object):
 
                 self.train_loss.update(loss.data[0] / (batch_size * batch_size), 1)
 
-                if i % 100 == 0 or i != 0:
+                if i % 100 == 0 and i != 0:
+                    self.console_logger.debug("epoch:%d, i:%d", epoch, i)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
@@ -139,7 +139,6 @@ class Trainer(object):
                     self.train_loss.reset()
                     start_time = time.time()
 
-                print(i)
             self.log_train_result(epoch, i, start_time)
             self.eval(epoch, i)
 
