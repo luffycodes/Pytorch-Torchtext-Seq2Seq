@@ -35,7 +35,7 @@ class Decoder(nn.Module):
             h_size = (self.num_layers *2, batch_size, self.hidden_dim)
             enc_h_0 = Variable(src_embed.data.new(*h_size).zero_(), requires_grad=False)
 
-        print("bug enter")
+        print("bug enter - batchsize %d", batch_size)
         seq_length = [int(x) for x in sorted_seq_len.data.tolist()]
         print("bug fixed")
 
