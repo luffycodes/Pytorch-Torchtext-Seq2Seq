@@ -116,6 +116,7 @@ class Trainer(object):
                 _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
                                                                    trg_length.tolist())
 
+                print("loss ", loss.data[0])
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
@@ -151,6 +152,7 @@ class Trainer(object):
         start_time = time.time()
 
         for i, batch in enumerate(tqdm(self.val_loader)):
+            val_loss.reset()
             src_input = batch.src[0]
             src_length = batch.src[1]
             trg_input = batch.trg[0]
