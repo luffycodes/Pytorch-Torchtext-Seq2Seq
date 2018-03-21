@@ -117,7 +117,6 @@ class Trainer(object):
                 _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
                                                                    trg_length.tolist())
 
-                print("loss::", loss.data[0])
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
@@ -189,13 +188,13 @@ class Trainer(object):
             self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + train_iter + 1)
 
     def log_train_result(self, epoch, train_iter, start_time):
-        message = "Training :: Train epoch: %d  iter: %d  train loss: %1.3f elapsed: %1.3f " % (
+        message = "Training $#$ Epoch:%d $#$ iter: %d $#$ training_loss: %1.3f $#$ elapsed: %1.3f " % (
             epoch, train_iter, self.train_loss.avg, time.time() - start_time)
 
         self.console_logger.debug(message)
 
     def log_valid_result(self, epoch, train_iter, val_loss, start_time):
-        message = "Validation :: Train epoch: %d  iter: %d  val loss score: %1.3f train loss: %1.3f elapsed: " \
+        message = "Validation $#$ Epoch: %d $#$ iter: %d $#$ validation_loss: %1.3f $#$ training_loss: %1.3f elapsed: " \
                   "%1.3f " % (
                       epoch, train_iter, val_loss, self.train_loss.avg, time.time() - start_time)
 
