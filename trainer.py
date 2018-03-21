@@ -66,6 +66,8 @@ class Trainer(object):
 
         self.console_logger.propagate = False
 
+        torch.cuda.set_device(args.gpu_num)
+
         self.build_model(vocabs)
 
     def build_model(self, vocabs):
