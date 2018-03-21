@@ -12,7 +12,9 @@ def randomChoice(batch_size):
     return random.randint(0, batch_size - 1)
 
 
-def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
+def sort_batch_by_length(self, tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
+    print("inside of sort_batch_by_length")
+
     """
     Sort a batch first tensor by some specified lengths.
 
@@ -42,15 +44,7 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
         raise Exception("Both the tensor and sequence lengths must be torch.autograd.Variables.")
 
     sorted_sequence_lengths, permutation_index = sequence_lengths.sort(0, descending=True)
-
-    if torch.cuda.is_available():
-        sorted_sequence_lengths = sorted_sequence_lengths.cuda()
-        permutation_index = permutation_index.cuda()
-
     sorted_tensor = tensor.index_select(0, permutation_index)
-
-    if torch.cuda.is_available():
-        sorted_tensor = sorted_tensor.cuda()
 
     # This is ugly, but required - we are creating a new variable at runtime, so we
     # must ensure it has the correct CUDA vs non-CUDA type. We do this by cloning and
@@ -62,8 +56,7 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
     _, reverse_mapping = permutation_index.sort(0, descending=False)
     restoration_indices = index_range.index_select(0, reverse_mapping)
 
-    if torch.cuda.is_available():
-        restoration_indices = restoration_indices.cuda()
+    print("out of sort_batch_by_length")
 
     return sorted_tensor, sorted_sequence_lengths, restoration_indices, permutation_index
 
