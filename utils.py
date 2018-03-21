@@ -12,7 +12,7 @@ def randomChoice(batch_size):
     return random.randint(0, batch_size - 1)
 
 
-def sort_batch_by_length(self, tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
+def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
     print("inside of sort_batch_by_length")
 
     """
