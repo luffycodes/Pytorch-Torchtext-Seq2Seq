@@ -162,7 +162,6 @@ class Trainer(object):
                                                    trg_length.tolist())
 
             val_loss.update(loss.data[0] / (batch_size * batch_size), 1)
-            print("type of val_loss ", type(val_loss))
 
         self.log_valid_result(epoch, train_iter, val_loss.avg, start_time)
 
