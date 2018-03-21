@@ -122,7 +122,7 @@ class Trainer(object):
 
                 self.train_loss.update(loss.data[0] / (batch_size * batch_size), 1)
 
-                if i % 100 == 0:
+                if i % 100 == 0 & i != 0:
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
@@ -139,6 +139,7 @@ class Trainer(object):
                     self.train_loss.reset()
                     start_time = time.time()
 
+                print(i)
             self.log_train_result(epoch, i, start_time)
             self.eval(epoch, i)
 
