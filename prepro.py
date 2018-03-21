@@ -60,8 +60,8 @@ class DataPreprocessor(object):
         self.save_data(val_file, val_dataset)
 
         # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, max_size=30000)
-        self.trg_field.build_vocab(train_dataset, max_size=30000)
+        self.src_field.build_vocab(train_dataset, max_size=500000)
+        self.trg_field.build_vocab(train_dataset, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
 
