@@ -24,7 +24,13 @@ class Seq2Seq(nn.Module):
         enc_h, enc_h_t = self.encoder(source, src_length)
         dec_h, dec_h_t = self.decoder(target, trg_length)
 
-        loss = torch.mm(torch.sum(enc_h_t, dim=1), torch.sum(dec_h_t, dim=1).transpose(0, 1))
+        bi_enc_h_t = torch.sum(enc_h_t, dim=1)
+        bi_dec_h_t = torch.sum(dec_h_t, dim=1)
+
+        bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
+        bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
+
+        loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
         for x in range(0, loss.size()[0]):
             loss[x, x] = -loss[x, x]
         loss = torch.sum(torch.sigmoid(loss))

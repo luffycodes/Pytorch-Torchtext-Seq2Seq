@@ -66,7 +66,8 @@ class Trainer(object):
 
         self.console_logger.propagate = False
 
-        torch.cuda.set_device(args.gpu_num)
+        if torch.cuda.is_available():
+            torch.cuda.set_device(args.gpu_num)
 
         self.build_model(vocabs)
 

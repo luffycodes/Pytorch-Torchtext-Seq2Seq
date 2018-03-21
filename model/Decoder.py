@@ -27,7 +27,12 @@ class Decoder(nn.Module):
 
     def forward(self, target, trg_length=None, hidden=None):
         batch_size = target.size(0)
-        sorted_inputs, sorted_seq_len, restoration_indices, _ = sort_batch_by_length(target, Variable(torch.FloatTensor(trg_length)).cuda())
+
+        trg_length_cuda = Variable(torch.FloatTensor(trg_length))
+        if torch.cuda.is_available():
+            trg_length_cuda = trg_length_cuda.cuda()
+
+        sorted_inputs, sorted_seq_len, restoration_indices, _ = sort_batch_by_length(target, trg_length_cuda)
 
         src_embed = self.embedding(sorted_inputs)
 
