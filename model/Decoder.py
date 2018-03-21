@@ -27,7 +27,7 @@ class Decoder(nn.Module):
 
     def forward(self, target, trg_length=None, hidden=None):
         batch_size = target.size(0)
-        sorted_inputs, sorted_seq_len, restoration_indices, _ = self.sort_batch_by_length(target, Variable(torch.FloatTensor(trg_length)))
+        sorted_inputs, sorted_seq_len, restoration_indices, _ = self.sort_batch_by_length(target, Variable(torch.FloatTensor(trg_length)).cuda())
 
         src_embed = self.embedding(sorted_inputs)
 
@@ -53,6 +53,8 @@ class Decoder(nn.Module):
         return enc_h, last_layer_state
 
     def sort_batch_by_length(self, tensor: torch.autograd.Variable, sequence_lengths: torch.autograd.Variable):
+        print("inside of sort_batch_by_length")
+
         """
         Sort a batch first tensor by some specified lengths.
 
@@ -93,5 +95,7 @@ class Decoder(nn.Module):
         index_range = Variable(index_range.long()).cuda()
         _, reverse_mapping = permutation_index.sort(0, descending=False)
         restoration_indices = index_range.index_select(0, reverse_mapping)
+
+        print("out of sort_batch_by_length")
 
         return sorted_tensor, sorted_sequence_lengths, restoration_indices, permutation_index
