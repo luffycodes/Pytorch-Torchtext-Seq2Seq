@@ -122,7 +122,7 @@ class Trainer(object):
 
                 self.train_loss.update(loss.data[0] / (batch_size * batch_size), 1)
 
-                if i % 100 == 0 & i != 0:
+                if i % 100 == 0 or i != 0:
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
@@ -160,13 +160,14 @@ class Trainer(object):
             _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
                                                    trg_length.tolist())
 
-            val_loss.update(loss / (batch_size * batch_size), 1)
+            val_loss.update(loss.data[0] / (batch_size * batch_size), 1)
+            print("type of val_loss ", type(val_loss))
 
         self.log_valid_result(epoch, train_iter, val_loss.avg, start_time)
 
         # Save model if bleu score is higher than the best 
-        if self.best_loss < val_loss.avg.data[0]:
-            self.best_loss = val_loss.avg.data[0]
+        if self.best_loss < val_loss.avg:
+            self.best_loss = val_loss.avg
             checkpoint = {
                 'model': self.model,
                 'epoch': epoch
