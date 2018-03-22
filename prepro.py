@@ -6,6 +6,7 @@ import re
 import spacy
 import os
 from tqdm import tqdm
+import logging
 
 SOS_WORD = '<SOS>'
 EOS_WORD = '<EOS>'
@@ -41,27 +42,58 @@ class MaxlenTranslationDataset(data.Dataset):
         super(MaxlenTranslationDataset, self).__init__(examples, fields, **kwargs)
 
 
+def get_tokenizer(lang):
+    spacy_lang = spacy.load(lang)
+    return lambda s: [tok.text for tok in spacy_lang.tokenizer(s)]
+
+
+def generate_fields(src_lang, trg_lang):
+    src_field = data.Field(tokenize=get_tokenizer(src_lang),
+                           init_token=SOS_WORD,
+                           eos_token=EOS_WORD,
+                           pad_token=PAD_WORD,
+                           include_lengths=True,
+                           batch_first=True)
+
+    trg_field = data.Field(tokenize=get_tokenizer(trg_lang),
+                           init_token=SOS_WORD,
+                           eos_token=EOS_WORD,
+                           pad_token=PAD_WORD,
+                           include_lengths=True,
+                           batch_first=True)
+
+    return src_field, trg_field
+
+
+def save_data(data_file, dataset):
+    examples = vars(dataset)['examples']
+    dataset = {'examples': examples}
+
+    torch.save(dataset, data_file)
+
+
 class DataPreprocessor(object):
-    def __init__(self):
-        self.src_field, self.trg_field = self.generate_fields()
+    def __init__(self, src_lang, trg_lang):
+        self.src_field, self.trg_field = generate_fields(src_lang, trg_lang)
+        self.logger = logging.getLogger()
 
     def preprocess(self, train_path, val_path, train_file, val_file, src_lang, trg_lang, max_len=None):
         # Generating torchtext dataset class
-        print("Preprocessing train dataset...")
+        self.logger.debug("Preprocessing train dataset...")
         train_dataset = self.generate_data(train_path, src_lang, trg_lang, max_len)
 
-        print("Saving train dataset...")
-        self.save_data(train_file, train_dataset)
+        self.logger.debug("Saving train dataset...")
+        save_data(train_file, train_dataset)
 
-        print("Preprocessing validation dataset...")
+        self.logger.debug("Preprocessing validation dataset...")
         val_dataset = self.generate_data(val_path, src_lang, trg_lang, max_len)
 
-        print("Saving validation dataset...")
-        self.save_data(val_file, val_dataset)
+        self.logger.debug("Saving validation dataset...")
+        save_data(val_file, val_dataset)
 
         # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, max_size=500000)
-        self.trg_field.build_vocab(train_dataset, max_size=500000)
+        self.src_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
+        self.trg_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
 
@@ -84,37 +116,14 @@ class DataPreprocessor(object):
         val_dataset = data.Dataset(fields=fields, examples=val_examples)
 
         # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, max_size=500000)
-        self.trg_field.build_vocab(train_dataset, max_size=500000)
+        self.src_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
+        self.trg_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
         vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,
                   'src_inv_vocab': src_inv_vocab, 'trg_inv_vocab': trg_inv_vocab}
 
         return train_dataset, val_dataset, vocabs
-
-    def save_data(self, data_file, dataset):
-        examples = vars(dataset)['examples']
-        dataset = {'examples': examples}
-
-        torch.save(dataset, data_file)
-
-    def generate_fields(self):
-        src_field = data.Field(tokenize=data.get_tokenizer('spacy'),
-                               init_token=SOS_WORD,
-                               eos_token=EOS_WORD,
-                               pad_token=PAD_WORD,
-                               include_lengths=True,
-                               batch_first=True)
-
-        trg_field = data.Field(tokenize=data.get_tokenizer('spacy'),
-                               init_token=SOS_WORD,
-                               eos_token=EOS_WORD,
-                               pad_token=PAD_WORD,
-                               include_lengths=True,
-                               batch_first=True)
-
-        return src_field, trg_field
 
     def generate_data(self, data_path, src_lang, trg_lang, max_len=None):
         exts = ('.' + src_lang, '.' + trg_lang)

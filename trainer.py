@@ -54,17 +54,6 @@ class Trainer(object):
         self.train_loss = AverageMeter()
 
         self.console_logger = logging.getLogger()
-        self.console_logger.setLevel(logging.DEBUG)
-        consoleHandler = logging.StreamHandler()
-        logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-        consoleHandler.setFormatter(logFormatter)
-        self.console_logger.addHandler(consoleHandler)
-
-        fileHandler = logging.FileHandler("{0}/{1}.log".format(args.log_path, "console"))
-        fileHandler.setFormatter(logFormatter)
-        self.console_logger.addHandler(fileHandler)
-
-        self.console_logger.propagate = False
 
         if torch.cuda.is_available():
             torch.cuda.set_device(args.gpu_num)
@@ -94,9 +83,9 @@ class Trainer(object):
         if torch.cuda.is_available():
             self.model.cuda()
 
-        print(self.model)
-        print(self.criterion)
-        print(self.optimizer)
+        self.console_logger.debug(self.model)
+        self.console_logger.debug(self.criterion)
+        self.console_logger.debug(self.optimizer)
 
     def train(self):
         for epoch in range(self.num_epoch):

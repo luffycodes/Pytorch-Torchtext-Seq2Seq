@@ -22,7 +22,8 @@ def tokenize_en(text):
 DE = data.Field(tokenize=tokenize_de)
 EN = data.Field(tokenize=tokenize_en)
 
-train, val, test = datasets.IWSLT.splits(exts=('.de', '.en'), fields=(DE, EN))
+# https://drive.google.com/uc?export=download&id=0B_bZck-ksdkpM25jRUN2X2UxMm8
+train, val, test = datasets.WMT14.splits(exts=('.de', '.en'), fields=(DE, EN))
 
 print(train.fields)
 print(len(train))
