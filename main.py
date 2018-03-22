@@ -57,6 +57,7 @@ def main(args):
                                    repeat=False, shuffle=True, sort_within_batch=True,
                                    sort_key=lambda x: len(x.src), device=args.gpu_num)
 
+    console_logger.debug("testing")
     trainer = Trainer(train_loader, val_loader, vocabs, args)
     trainer.train()
 
