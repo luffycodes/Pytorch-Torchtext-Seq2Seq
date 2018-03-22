@@ -15,6 +15,9 @@ class Encoder(nn.Module):
         self.bidir = True
         self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, )
 
+        for x in sum(self.gru._all_weights, []):
+            nn.utils.weight_norm(self.gru, name=x)
+
     def forward(self, source, src_length=None, hidden=None):
         """
         source: B x T
