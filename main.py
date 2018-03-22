@@ -111,5 +111,5 @@ if __name__ == '__main__':
     parser.add_argument('--gpu_num', type=int, default=gpu)
 
     args = parser.parse_args()
-    console_logger.debug(args)
+    print(args)
     main(args)
