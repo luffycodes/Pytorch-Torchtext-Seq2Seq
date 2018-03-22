@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # Language setting
     parser.add_argument('--dataset', type=str, default='europarl')
     parser.add_argument('--src_lang', type=str, default='en')
-    parser.add_argument('--trg_lang', type=str, default='de')
+    parser.add_argument('--trg_lang', type=str, default='fr')
     parser.add_argument('--max_len', type=int, default=70)
 
     # Model hyper-parameters
@@ -97,7 +97,8 @@ if __name__ == '__main__':
     # Path
     data = config[MACHINE]['translation_data_location']
     parser.add_argument('--data_path', type=str, default=('%s/' % data))
-    parser.add_argument('--train_path', type=str, default=('%s/training/europarl-v7.fr-en' % data))
+    args = parser.parse_args()
+    parser.add_argument('--train_path', type=str, default=('%s/training/europarl-v7.%s-%s' % (data, args.trg_lang, args.src_lang)))
     parser.add_argument('--val_path', type=str, default=('%s/dev/newstest2013' % data))
 
     model_results = config[MACHINE]['translation_model_location']
