@@ -121,6 +121,7 @@ class Trainer(object):
                 loss.backward()
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
                 self.optimizer.step()
+                self.console_logger.debug("epoch:%d, i:%d, loss:%d", epoch, i, loss.data[0])
 
                 self.train_loss.update(loss.data[0], 1)
 

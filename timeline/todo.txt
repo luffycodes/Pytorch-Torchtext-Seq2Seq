@@ -1,0 +1,4 @@
+March 21, 2018:
+1. Load vocab from glove file
+    - http://mlexplained.com/2018/02/15/language-modeling-tutorial-in-torchtext-practical-torchtext-part-2/
+    - https://media.readthedocs.org/pdf/torchtext/latest/torchtext.pdf

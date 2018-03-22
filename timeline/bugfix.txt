@@ -1,0 +1,13 @@
+March 21, 2018:
+1. Same loss for everything
+    - How to resolve?
+        - check weights
+        - check biases
+        - check initialization of weights
+        - batch size increase
+        - print norm of weights
+2. Preprocessing may be wrong
+    - No use of spacy german or french model
+3. Tools
+    - Ipython
+    - Python debugger
