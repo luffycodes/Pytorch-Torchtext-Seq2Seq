@@ -118,8 +118,10 @@ class Trainer(object):
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
-                    self.console_logger.debug("all_weights[0][0].data[0] %1.3f", torch.sum(self.model.encoder.gru.all_weights[0][0].data[0]))
-                    self.console_logger.debug("all_weights[0][0].data[0] %1.3f", torch.sum(self.model.decoder.gru.all_weights[0][0].data[0]))
+                    self.console_logger.debug("encoder : all_weights[0][0].data[0] %1.3f", torch.sum(self.model.encoder.gru.all_weights[0][0].data[0]))
+                    self.console_logger.debug("encoder : all_weights[0][0].grad[0] %1.8f", torch.sum(self.model.encoder.gru.all_weights[0][0].grad[0].data))
+                    self.console_logger.debug("decoder : all_weights[0][0].data[0] %1.3f", torch.sum(self.model.decoder.gru.all_weights[0][0].data[0]))
+                    self.console_logger.debug("decoder : all_weights[0][0].grad[0] %1.8f", torch.sum(self.model.decoder.gru.all_weights[0][0].grad[0].data))
 
                     # Logging tensorboard
                     info = {
