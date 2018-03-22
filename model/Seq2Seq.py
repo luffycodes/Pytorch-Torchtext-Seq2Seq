@@ -32,7 +32,7 @@ class Seq2Seq(nn.Module):
 
         loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
         for x in range(0, loss.size()[0]):
-            loss[x, x] = -loss[x, x]
+            loss[x, x] = - 10 * loss[x, x]
         loss = torch.sum(torch.sigmoid(loss))
 
         return enc_h_t, enc_h_t, dec_h_t, loss
