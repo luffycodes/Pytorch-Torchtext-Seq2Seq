@@ -8,4 +8,4 @@ vs
 h_size = (self.num_layers * 2, batch_size, self.hidden_dim)
 
 experiment:
-bias = False in gru encoder & decoder
+dropout = 0.5
