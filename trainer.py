@@ -42,6 +42,7 @@ class Trainer(object):
         self.embed_dim = args.embed_dim
         self.hidden_dim = args.hidden_dim
         self.num_layer = args.num_layer
+        self.bi_dir = args.bi_dir
 
         # Training setting
         self.batch_size = args.batch_size
@@ -73,7 +74,7 @@ class Trainer(object):
 
         # build the model
         self.model = Seq2Seq(self.src_nword, self.trg_nword, self.num_layer, self.embed_dim, self.hidden_dim,
-                             self.max_len, self.trg_soi)
+                             self.max_len, self.trg_soi, self.bi_dir)
 
         # set the criterion and optimizer
         self.criterion = nn.NLLLoss()

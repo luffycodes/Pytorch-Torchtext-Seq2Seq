@@ -10,14 +10,14 @@ from model import *
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self, src_nword, trg_nword, num_layer, embed_dim, hidden_dim, max_len, trg_soi):
+    def __init__(self, src_nword, trg_nword, num_layer, embed_dim, hidden_dim, max_len, trg_soi, bi_dir):
         super(Seq2Seq, self).__init__()
 
         self.hidden_dim = hidden_dim
         self.trg_nword = trg_nword
 
-        self.encoder = Encoder(src_nword, embed_dim, hidden_dim)
-        self.decoder = Decoder(trg_nword, embed_dim, hidden_dim)
+        self.encoder = Encoder(src_nword, embed_dim, hidden_dim, num_layer, bi_dir)
+        self.decoder = Decoder(trg_nword, embed_dim, hidden_dim, num_layer, bi_dir)
 
         self.console_logger = logging.getLogger()
 
