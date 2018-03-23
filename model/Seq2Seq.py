@@ -42,3 +42,44 @@ class Seq2Seq(nn.Module):
         loss = torch.sum(torch.sigmoid(loss))
 
         return enc_h_t, enc_h_t, dec_h_t, loss
+
+    @staticmethod
+    def plotInternals(epoch, i, writer, iter_per_epoch, target, bi_dec_h_t, source, bi_enc_h_t):
+        info = {
+            'decoder source': torch.sum(target.data),
+            'encoder source': torch.sum(source.data),
+        }
+        writer.add_scalars('Encoder_Decoder_Input', info, (epoch * iter_per_epoch) + i + 1)
+
+        info = {
+            'decoder last_layer_state': torch.sum(bi_dec_h_t.data),
+            'encoder last_layer_state': torch.sum(bi_enc_h_t.data),
+        }
+
+        writer.add_scalars('Encoder_Decoder_Output', info, (epoch * iter_per_epoch) + i + 1)
+
+    def logWeightsDataAndGrad(self, epoch, i, writer, iter_per_epoch):
+        encoder_weights = torch.sum(self.encoder.gru.all_weights[0][0].data)
+        encoder_weights_grad = torch.sum(self.encoder.gru.all_weights[0][0].grad.data)
+        decoder_weights = torch.sum(self.decoder.gru.all_weights[0][0].data)
+        decoder_weights_grad = torch.sum(self.decoder.gru.all_weights[0][0].grad.data)
+
+        # console
+        self.console_logger.debug("encoder : all_weights[0][0].data %1.3f", encoder_weights)
+        self.console_logger.debug("encoder : all_weights[0][0].grad %1.8f", encoder_weights_grad)
+        self.console_logger.debug("decoder : all_weights[0][0].data %1.3f", decoder_weights)
+        self.console_logger.debug("decoder : all_weights[0][0].grad %1.8f", decoder_weights_grad)
+
+        # tensorboard
+        info = {
+            'encoder_weights': encoder_weights,
+            'decoder_weights': decoder_weights,
+        }
+        writer.add_scalars('Encoder_Decoder_Data', info, (epoch * iter_per_epoch) + i + 1)
+
+        info = {
+            'encoder_weights_grad': encoder_weights_grad,
+            'decoder_weights_grad': decoder_weights_grad,
+        }
+
+        writer.add_scalars('Encoder_Decoder_Grad', info, (epoch * iter_per_epoch) + i + 1)
