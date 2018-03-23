@@ -24,7 +24,7 @@ class Decoder(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.bidir = bi_dir
-        self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, )
+        self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, bias=False)
 
         self.console_logger = logging.getLogger()
 
