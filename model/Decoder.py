@@ -41,7 +41,7 @@ class Decoder(nn.Module):
 
         if hidden is None:
             h_size = (self.num_layers, batch_size, self.hidden_dim)
-            enc_h_0 = Variable(src_embed.data.new(*h_size).normal_(), requires_grad=False)
+            enc_h_0 = Variable(src_embed.data.new(*h_size).zero_(), requires_grad=False)
 
         seq_length = [int(x) for x in sorted_seq_len.data.tolist()]
 

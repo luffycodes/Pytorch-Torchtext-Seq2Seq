@@ -1,6 +1,7 @@
 experiment:
 noisy initial state in encoder & decoder:
 enc_h_0 = Variable(src_embed.data.new(*h_size).normal_(), requires_grad=False)
+now it is back to zero_()
 
 experiment:
 h_size = (self.num_layers, batch_size, self.hidden_dim)
