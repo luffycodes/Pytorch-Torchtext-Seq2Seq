@@ -1,0 +1,3 @@
+experiment:
+noisy initial state in encoder & decoder:
+enc_h_0 = Variable(src_embed.data.new(*h_size).normal_(), requires_grad=False)
