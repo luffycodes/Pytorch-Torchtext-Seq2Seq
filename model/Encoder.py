@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+import logging
 
 from utils import *
 
@@ -15,8 +16,7 @@ class Encoder(nn.Module):
         self.bidir = True
         self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, )
 
-        for x in self.gru._parameters.keys():
-            nn.utils.weight_norm(self.gru, name=x)
+        self.console_logger = logging.getLogger()
 
     def forward(self, source, src_length=None, hidden=None):
         """
@@ -42,5 +42,8 @@ class Encoder(nn.Module):
             last_state_index = 1
 
         last_layer_state = enc_h_t.transpose(0, 1)[:, -last_state_index:, :]
+
+        self.console_logger.debug("encoder source:  %1.3f", torch.sum(source.data))
+        self.console_logger.debug("encoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
 
         return enc_h, last_layer_state

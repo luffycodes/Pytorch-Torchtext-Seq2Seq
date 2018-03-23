@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import logging
 
 from model import *
 
@@ -25,8 +26,7 @@ class Decoder(nn.Module):
         self.bidir = True
         self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, )
 
-        for x in self.gru._parameters.keys():
-            nn.utils.weight_norm(self.gru, name=x)
+        self.console_logger = logging.getLogger()
 
     def forward(self, target, trg_length=None, hidden=None):
         batch_size = target.size(0)
@@ -58,5 +58,8 @@ class Decoder(nn.Module):
             last_state_index = 1
 
         last_layer_state = unsorted_state[:, -last_state_index:, :]
+
+        self.console_logger.debug("decoder source:  %1.3f", torch.sum(target.data))
+        self.console_logger.debug("decoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
 
         return enc_h, last_layer_state

@@ -140,13 +140,13 @@ class Trainer(object):
             self.eval(epoch, i)
 
     def eval(self, epoch, train_iter):
+        self.console_logger.debug("entering validation code")
         self.model.eval()
 
         val_loss = AverageMeter()
         start_time = time.time()
 
         for i, batch in enumerate(tqdm(self.val_loader)):
-            val_loss.reset()
             src_input = batch.src[0]
             src_length = batch.src[1]
             trg_input = batch.trg[0]
@@ -180,6 +180,8 @@ class Trainer(object):
 
         for tag, value in info.items():
             self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + train_iter + 1)
+
+        self.console_logger.debug("exiting validation code")
 
     def log_train_result(self, epoch, train_iter, start_time):
         message = "Training $#$ Epoch:%d $#$ iter: %d $#$ training_loss: %1.3f $#$ elapsed: %1.3f " % (

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import logging
 
 from model import Decoder
 from model import Encoder
@@ -18,6 +19,8 @@ class Seq2Seq(nn.Module):
         self.encoder = Encoder(src_nword, embed_dim, hidden_dim)
         self.decoder = Decoder(trg_nword, embed_dim, hidden_dim)
 
+        self.console_logger = logging.getLogger()
+
     def forward(self, source, src_length=None, target=None, trg_length=None):
         batch_size = source.size(0)
 
@@ -29,6 +32,9 @@ class Seq2Seq(nn.Module):
 
         bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
         bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
+
+        self.console_logger.debug("Seq2Seq bi_enc_h_t:  %1.3f", torch.sum(bi_enc_h_t.data))
+        self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
 
         loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
         for x in range(0, loss.size()[0]):
