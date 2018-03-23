@@ -25,6 +25,8 @@ class Encoder(nn.Module):
         batch_size = source.size(0)
         src_embed = self.embedding(source)
 
+        self.console_logger.debug("encoder src_embed:  %1.3f", torch.sum(src_embed.data))
+
         if hidden is None:
             h_size = (self.num_layers * 2, batch_size, self.hidden_dim)
             enc_h_0 = Variable(src_embed.data.new(*h_size).zero_(), requires_grad=False)

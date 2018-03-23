@@ -38,6 +38,7 @@ class Decoder(nn.Module):
         sorted_inputs, sorted_seq_len, restoration_indices, _ = sort_batch_by_length(target, trg_length_cuda)
 
         src_embed = self.embedding(sorted_inputs)
+        self.console_logger.debug("decoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
         if hidden is None:
             h_size = (self.num_layers *2, batch_size, self.hidden_dim)
