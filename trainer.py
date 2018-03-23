@@ -112,17 +112,21 @@ class Trainer(object):
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
                 self.optimizer.step()
 
+                self.console_logger.debug("encoder : all_weights[0][0].data %1.3f",
+                                          torch.sum(self.model.encoder.gru.all_weights[0][0].data))
+                self.console_logger.debug("encoder : all_weights[0][0].grad %1.8f",
+                                          torch.sum(self.model.encoder.gru.all_weights[0][0].grad.data))
+                self.console_logger.debug("decoder : all_weights[0][0].data %1.3f",
+                                          torch.sum(self.model.decoder.gru.all_weights[0][0].data))
+                self.console_logger.debug("decoder : all_weights[0][0].grad %1.8f",
+                                          torch.sum(self.model.decoder.gru.all_weights[0][0].grad.data))
+
                 self.train_loss.update(loss.data[0], 1)
 
                 if i % 100 == 0 and i != 0:
                     self.console_logger.debug("epoch:%d, i:%d", epoch, i)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
-
-                    self.console_logger.debug("encoder : all_weights[0][0].data[0] %1.3f", torch.norm(self.model.encoder.gru.all_weights[0][0].data[0]))
-                    self.console_logger.debug("encoder : all_weights[0][0].grad[0] %1.8f", torch.norm(self.model.encoder.gru.all_weights[0][0].grad[0].data))
-                    self.console_logger.debug("decoder : all_weights[0][0].data[0] %1.3f", torch.norm(self.model.decoder.gru.all_weights[0][0].data[0]))
-                    self.console_logger.debug("decoder : all_weights[0][0].grad[0] %1.8f", torch.norm(self.model.decoder.gru.all_weights[0][0].grad[0].data))
 
                     # Logging tensorboard
                     info = {
