@@ -112,16 +112,8 @@ class Trainer(object):
                 torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
                 self.optimizer.step()
 
-                self.console_logger.debug("encoder : all_weights[0][0].data %1.3f",
-                                          torch.sum(self.model.encoder.gru.all_weights[0][0].data))
-                self.console_logger.debug("encoder : all_weights[0][0].grad %1.8f",
-                                          torch.sum(self.model.encoder.gru.all_weights[0][0].grad.data))
-                self.console_logger.debug("decoder : all_weights[0][0].data %1.3f",
-                                          torch.sum(self.model.decoder.gru.all_weights[0][0].data))
-                self.console_logger.debug("decoder : all_weights[0][0].grad %1.8f",
-                                          torch.sum(self.model.decoder.gru.all_weights[0][0].grad.data))
-
                 self.train_loss.update(loss.data[0], 1)
+                self.logConsolePlusTf(epoch, i)
 
                 if i % 100 == 0 and i != 0:
                     self.console_logger.debug("epoch:%d, i:%d", epoch, i)
@@ -134,8 +126,8 @@ class Trainer(object):
                         'train_iter': i,
                         'train_loss': self.train_loss.avg,
                     }
-                    for tag, value in info.items():
-                        self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + i + 1)
+                    # for tag, value in info.items():
+                    #     self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + i + 1)
 
                     # reset for next 100 batch
                     self.train_loss.reset()
@@ -183,8 +175,8 @@ class Trainer(object):
             'val_loss': val_loss.avg
         }
 
-        for tag, value in info.items():
-            self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + train_iter + 1)
+        # for tag, value in info.items():
+        #     self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + train_iter + 1)
 
         self.console_logger.debug("exiting validation code")
 
@@ -200,3 +192,32 @@ class Trainer(object):
                       epoch, train_iter, val_loss, self.train_loss.avg, time.time() - start_time)
 
         self.console_logger.debug(message)
+
+    def logConsolePlusTf(self, epoch, i):
+        encoder_weights = torch.sum(self.model.encoder.gru.all_weights[0][0].data)
+        encoder_weights_grad = torch.sum(self.model.encoder.gru.all_weights[0][0].grad.data)
+        decoder_weights = torch.sum(self.model.decoder.gru.all_weights[0][0].data)
+        decoder_weights_grad = torch.sum(self.model.decoder.gru.all_weights[0][0].grad.data)
+
+        # console
+        self.console_logger.debug("encoder : all_weights[0][0].data %1.3f",
+                                  encoder_weights)
+        self.console_logger.debug("encoder : all_weights[0][0].grad %1.8f",
+                                  encoder_weights_grad)
+        self.console_logger.debug("decoder : all_weights[0][0].data %1.3f",
+                                  decoder_weights)
+        self.console_logger.debug("decoder : all_weights[0][0].grad %1.8f",
+                                  decoder_weights_grad)
+
+        # tensorboard
+        info = {
+            'epoch': epoch,
+            'train_iter': i,
+            'encoder_weights': encoder_weights,
+            'encoder_weights_grad': encoder_weights_grad,
+            'decoder_weights': decoder_weights,
+            'decoder_weights_grad': decoder_weights_grad,
+            'train_loss': self.train_loss.avg,
+        }
+        for tag, value in info.items():
+            self.tf_log.scalar_summary(tag, value, (epoch * self.iter_per_epoch) + i + 1)
