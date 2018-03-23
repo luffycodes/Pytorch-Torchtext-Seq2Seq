@@ -38,7 +38,6 @@ class Decoder(nn.Module):
         sorted_inputs, sorted_seq_len, restoration_indices, _ = sort_batch_by_length(target, trg_length_cuda)
 
         src_embed = self.embedding(sorted_inputs)
-        self.console_logger.debug("decoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
         if hidden is None:
             h_size = (self.num_layers *2, batch_size, self.hidden_dim)
@@ -47,6 +46,9 @@ class Decoder(nn.Module):
         seq_length = [int(x) for x in sorted_seq_len.data.tolist()]
 
         src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, seq_length, batch_first=True)
+
+        self.console_logger.debug("decoder src_embed:  %1.3f", torch.sum(src_embed.data))
+
         enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
         # enc_h, _ = nn.utils.rnn.pad_packed_sequence(enc_h, batch_first=True)
