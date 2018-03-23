@@ -26,7 +26,7 @@ class Encoder(nn.Module):
         src_embed = self.embedding(source)
 
         if hidden is None:
-            h_size = (self.num_layers * 2, batch_size, self.hidden_dim)
+            h_size = (self.num_layers, batch_size, self.hidden_dim)
             enc_h_0 = Variable(src_embed.data.new(*h_size).normal_(), requires_grad=False)
 
         if src_length is not None:
