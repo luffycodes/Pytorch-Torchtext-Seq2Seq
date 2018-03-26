@@ -25,3 +25,12 @@ to:
             loss[x, x] = - loss[x, x]
         loss = torch.sum(torch.log(torch.sigmoid(loss)))
         loss = -1 * loss
+
+experiment:
+from:
+        bi_enc_h_t = torch.sum(enc_h_t, dim=1)
+        bi_dec_h_t = torch.sum(dec_h_t, dim=1)
+
+to:
+        bi_enc_h_t = torch.sigmoid(torch.sum(enc_h_t, dim=1))
+        bi_dec_h_t = torch.sigmoid(torch.sum(dec_h_t, dim=1))

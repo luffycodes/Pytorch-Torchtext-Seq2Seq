@@ -27,8 +27,8 @@ class Seq2Seq(nn.Module):
         enc_h, enc_h_t = self.encoder(source, src_length)
         dec_h, dec_h_t = self.decoder(target, trg_length)
 
-        bi_enc_h_t = torch.sum(enc_h_t, dim=1)
-        bi_dec_h_t = torch.sum(dec_h_t, dim=1)
+        bi_enc_h_t = torch.sigmoid(torch.sum(enc_h_t, dim=1))
+        bi_dec_h_t = torch.sigmoid(torch.sum(dec_h_t, dim=1))
 
         bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
         bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
