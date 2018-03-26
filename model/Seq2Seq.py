@@ -37,9 +37,11 @@ class Seq2Seq(nn.Module):
         self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
 
         loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
+        loss = -1 * loss
         for x in range(0, loss.size()[0]):
-            loss[x, x] = - 10 * loss[x, x]
-        loss = torch.sum(torch.sigmoid(loss))
+            loss[x, x] = - loss[x, x]
+        loss = torch.sum(torch.log(torch.sigmoid(loss)))
+        loss = -1 * loss
 
         return enc_h_t, enc_h_t, dec_h_t, loss
 
