@@ -45,7 +45,7 @@ class Seq2Seq(nn.Module):
 
         diagonalLoss = 0
         for x in range(0, loss.size()[0]):
-            logLoss[x, x] = 10 * logLoss[x, x]
+            logLoss[x, x] = 40 * logLoss[x, x]
             diagonalLoss += logLoss[x, x]
 
         logLoss = torch.sum(logLoss)
