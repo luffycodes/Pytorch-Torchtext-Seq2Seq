@@ -52,7 +52,7 @@ class Seq2Seq(nn.Module):
         logLoss = -1 * logLoss / batch_size
         diagonalLoss = -1 * diagonalLoss / batch_size
 
-        return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
+        return enc_h_t, enc_h_t, dec_h_t, diagonalLoss, diagonalLoss
 
     @staticmethod
     def plotInternals(epoch, i, writer, iter_per_epoch, target, bi_dec_h_t, source, bi_enc_h_t):
