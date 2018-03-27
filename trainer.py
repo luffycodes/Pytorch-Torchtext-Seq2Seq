@@ -130,7 +130,7 @@ class Trainer(object):
                     # Logging tensorboard
                     info = {
                         'train_loss': self.train_loss.avg,
-                        'diagonal_loss': self.diagonal_loss
+                        'diagonal_loss': self.diagonal_loss.avg
                     }
                     self.tf_log.add_scalars('Training loss', info, (epoch * self.iter_per_epoch) + i + 1)
 
