@@ -50,4 +50,5 @@ experiment:
 
 experiment:
         self.optimizer = optim.Adam(self.model.parameters(), weight_decay=0.2)
+        reduced to 0.001: as sum of weights was not growing
 
