@@ -80,7 +80,7 @@ class Trainer(object):
 
         # set the criterion and optimizer
         self.criterion = nn.NLLLoss()
-        self.optimizer = optim.SGD(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters())
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, 1, gamma=0.8)
 
         if torch.cuda.is_available():
