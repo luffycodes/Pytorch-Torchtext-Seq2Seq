@@ -54,6 +54,7 @@ class Trainer(object):
         # Log
         self.tf_log = SummaryWriter(self.log_path)
         self.train_loss = AverageMeter()
+        self.diagonal_loss = AverageMeter()
 
         self.console_logger = logging.getLogger()
 
@@ -93,6 +94,7 @@ class Trainer(object):
         for epoch in range(self.num_epoch):
             # self.scheduler.step()
             self.train_loss.reset()
+            self.diagonal_loss.reset()
             start_time = time.time()
 
             for i, batch in enumerate(self.train_loader):
@@ -105,7 +107,7 @@ class Trainer(object):
 
                 batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
-                _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
+                _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                                    trg_length.tolist())
 
                 self.optimizer.zero_grad()
@@ -114,6 +116,7 @@ class Trainer(object):
                 self.optimizer.step()
 
                 self.train_loss.update(loss.data[0], 1)
+                self.diagonal_loss.update(diagonalLoss.data[0], 1)
 
                 self.model.plotInternals(epoch, i, self.tf_log, self.iter_per_epoch, trg_input, dec_h_t, src_input, enc_h_t)
                 self.model.logWeightsDataAndGrad(epoch, i, self.tf_log, self.iter_per_epoch)
@@ -127,11 +130,13 @@ class Trainer(object):
                     # Logging tensorboard
                     info = {
                         'train_loss': self.train_loss.avg,
+                        'diagonal_loss': self.diagonal_loss
                     }
                     self.tf_log.add_scalars('Training loss', info, (epoch * self.iter_per_epoch) + i + 1)
 
                     # reset for next 100 batch
                     self.train_loss.reset()
+                    self.diagonal_loss.reset()
                     start_time = time.time()
 
             self.log_train_result(epoch, i, start_time)
@@ -152,7 +157,7 @@ class Trainer(object):
 
             batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
-            _, enc_h_t, dec_h_t, loss = self.model(src_input, src_length.tolist(), trg_input,
+            _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                    trg_length.tolist())
 
             val_loss.update(loss.data[0], 1)
