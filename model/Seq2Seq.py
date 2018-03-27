@@ -44,9 +44,13 @@ class Seq2Seq(nn.Module):
         logLoss = torch.log(torch.sigmoid(loss))
 
         diagonalLoss = 0
+        negative_samples = 5
+        mask = np.random.choice(batch_size, batch_size - 1 - negative_samples, replace=False)
         for x in range(0, loss.size()[0]):
-            logLoss[x, x] = 10 * logLoss[x, x]
             diagonalLoss += logLoss[x, x]
+            for y in mask:
+                if x != y:
+                    logLoss[x, y] = 0
 
         logLoss = torch.sum(logLoss)
         logLoss = -1 * logLoss / batch_size
