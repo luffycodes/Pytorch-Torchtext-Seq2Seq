@@ -43,6 +43,9 @@ class Seq2Seq(nn.Module):
 
         logLoss = torch.log(torch.sigmoid(loss))
 
+        for x in range(0, loss.size()[0]):
+            loss[x, x] = 10 * loss[x, x]
+
         diagonalLoss = 0
         for x in range(0, loss.size()[0]):
             diagonalLoss += logLoss[x, x]
