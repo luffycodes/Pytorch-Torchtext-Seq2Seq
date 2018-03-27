@@ -12,7 +12,7 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
 
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.embedding = nn.Embedding(vocab_size, embed_dim, max_norm=1)
         self.bidir = bi_dir
         self.gru = nn.GRU(embed_dim, self.hidden_dim, self.num_layers, batch_first=True, bidirectional=self.bidir, bias=True)
 
