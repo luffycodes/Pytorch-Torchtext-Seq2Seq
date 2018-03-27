@@ -47,7 +47,7 @@ class Seq2Seq(nn.Module):
         negative_samples = 5
         mask = np.random.choice(batch_size, batch_size - 1 - negative_samples, replace=False)
         for x in range(0, loss.size()[0]):
-            diagonalLoss += logLoss[x, x]
+            diagonalLoss += negative_samples * logLoss[x, x]
             for y in mask:
                 if x != y:
                     logLoss[x, y] = 0
