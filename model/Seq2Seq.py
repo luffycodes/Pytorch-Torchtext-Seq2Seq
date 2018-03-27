@@ -43,18 +43,16 @@ class Seq2Seq(nn.Module):
 
         logLoss = torch.log(torch.sigmoid(loss))
 
-        for x in range(0, loss.size()[0]):
-            loss[x, x] = 10 * loss[x, x]
-
         diagonalLoss = 0
         for x in range(0, loss.size()[0]):
+            logLoss[x, x] = 10 * logLoss[x, x]
             diagonalLoss += logLoss[x, x]
 
-        loss = torch.sum(logLoss)
-        loss = -1 * loss / batch_size
+        logLoss = torch.sum(logLoss)
+        logLoss = -1 * logLoss / batch_size
         diagonalLoss = -1 * diagonalLoss / batch_size
 
-        return enc_h_t, enc_h_t, dec_h_t, loss, diagonalLoss
+        return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
 
     @staticmethod
     def plotInternals(epoch, i, writer, iter_per_epoch, target, bi_dec_h_t, source, bi_enc_h_t):
