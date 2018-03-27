@@ -48,3 +48,6 @@ to:
 experiment:
         self.embedding = nn.Embedding(vocab_size, embed_dim, max_norm=1)
 
+experiment:
+        self.optimizer = optim.Adam(self.model.parameters(), weight_decay=0.2)
+
