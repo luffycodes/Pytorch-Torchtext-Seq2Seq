@@ -118,7 +118,7 @@ class Trainer(object):
                 self.train_loss.update(loss.data[0], 1)
                 self.diagonal_loss.update(diagonalLoss.data[0], 1)
 
-                if i % 100 == 0 and i != 0:
+                if i % 1000 == 0 and i != 0:
                     self.console_logger.debug("epoch:%d, i:%d, iter_per_epoch:%d", epoch, i, self.iter_per_epoch)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
