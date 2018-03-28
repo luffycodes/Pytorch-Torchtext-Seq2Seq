@@ -118,9 +118,6 @@ class Trainer(object):
                 self.train_loss.update(loss.data[0], 1)
                 self.diagonal_loss.update(diagonalLoss.data[0], 1)
 
-                self.model.plotInternals(epoch, i, self.tf_log, self.iter_per_epoch, trg_input, dec_h_t, src_input, enc_h_t)
-                self.model.logWeightsDataAndGrad(epoch, i, self.tf_log, self.iter_per_epoch)
-
                 if i % 100 == 0 and i != 0:
                     self.console_logger.debug("epoch:%d, i:%d, iter_per_epoch:%d", epoch, i, self.iter_per_epoch)
                     self.log_train_result(epoch, i, start_time)
@@ -133,6 +130,9 @@ class Trainer(object):
                         'negative_sample': self.train_loss.avg - self.diagonal_loss.avg,
                     }
                     self.tf_log.add_scalars('Training loss', info, (epoch * self.iter_per_epoch) + i + 1)
+                    self.model.plotInternals(epoch, i, self.tf_log, self.iter_per_epoch, trg_input, dec_h_t, src_input,
+                                             enc_h_t)
+                    self.model.logWeightsDataAndGrad(epoch, i, self.tf_log, self.iter_per_epoch)
 
                     # reset for next 100 batch
                     self.train_loss.reset()
