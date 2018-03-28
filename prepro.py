@@ -119,6 +119,8 @@ class DataPreprocessor(object):
         self.src_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
         self.trg_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
 
+        # self.src_field.vocab.load_vectors('fasttext.en.300d')
+
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
         vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,
                   'src_inv_vocab': src_inv_vocab, 'trg_inv_vocab': trg_inv_vocab}

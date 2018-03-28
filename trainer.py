@@ -121,9 +121,8 @@ class Trainer(object):
                 self.model.plotInternals(epoch, i, self.tf_log, self.iter_per_epoch, trg_input, dec_h_t, src_input, enc_h_t)
                 self.model.logWeightsDataAndGrad(epoch, i, self.tf_log, self.iter_per_epoch)
 
-                # if i % 100 == 0 and i != 0:
-                if True:
-                    self.console_logger.debug("epoch:%d, i:%d", epoch, i)
+                if i % 100 == 0 and i != 0:
+                    self.console_logger.debug("epoch:%d, i:%d, iter_per_epoch:%d", epoch, i, self.iter_per_epoch)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
 
@@ -148,6 +147,7 @@ class Trainer(object):
         self.model.eval()
 
         val_loss = AverageMeter()
+        val_diagonal_loss = AverageMeter()
         start_time = time.time()
 
         for i, batch in enumerate(tqdm(self.val_loader)):
@@ -162,6 +162,7 @@ class Trainer(object):
                                                    trg_length.tolist())
 
             val_loss.update(loss.data[0], 1)
+            val_diagonal_loss.update(diagonalLoss.data[0], 1)
 
         self.log_valid_result(epoch, train_iter, val_loss.avg, start_time)
 
@@ -176,7 +177,9 @@ class Trainer(object):
 
         # Logging tensorboard
         info = {
-            'val_loss': val_loss.avg
+            'val_loss': val_loss.avg,
+            'val_diagonal_loss': val_diagonal_loss.avg,
+            'val_negative_sample': val_loss.avg - val_diagonal_loss.avg,
         }
 
         self.tf_log.add_scalars('Validation loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
