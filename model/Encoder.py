@@ -34,7 +34,7 @@ class Encoder(nn.Module):
             if src_length is not None:
                 src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, src_length, batch_first=True)
 
-            self.console_logger.debug("encoder src_embed:  %1.3f", torch.sum(src_embed.data))
+            # self.console_logger.debug("encoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
             enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
@@ -47,8 +47,8 @@ class Encoder(nn.Module):
 
             last_layer_state = enc_h_t.transpose(0, 1)[:, -last_state_index:, :]
 
-            self.console_logger.debug("encoder source:  %1.3f", torch.sum(source.data))
-            self.console_logger.debug("encoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
+            # self.console_logger.debug("encoder source:  %1.3f", torch.sum(source.data))
+            # self.console_logger.debug("encoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
 
             return enc_h, last_layer_state
         else:
@@ -67,7 +67,7 @@ class Encoder(nn.Module):
             if src_length is not None:
                 src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, src_length, batch_first=True)
 
-            self.console_logger.debug("stsForward encoder src_embed:  %1.3f", torch.sum(src_embed.data))
+            # self.console_logger.debug("stsForward encoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
             enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
@@ -80,8 +80,8 @@ class Encoder(nn.Module):
 
             last_layer_state = enc_h_t.transpose(0, 1)[:, -last_state_index:, :]
 
-            self.console_logger.debug("stsForward encoder source:  %1.3f", torch.sum(source.data))
-            self.console_logger.debug("stsForward encoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
+            # self.console_logger.debug("stsForward encoder source:  %1.3f", torch.sum(source.data))
+            # self.console_logger.debug("stsForward encoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
             return enc_h, last_layer_state
         else:
             batch_size = source.size(0)
@@ -102,7 +102,7 @@ class Encoder(nn.Module):
 
             src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, seq_length, batch_first=True)
 
-            self.console_logger.debug("stsForward decoder src_embed:  %1.3f", torch.sum(src_embed.data))
+            # self.console_logger.debug("stsForward decoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
             enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
@@ -117,7 +117,7 @@ class Encoder(nn.Module):
 
             last_layer_state = unsorted_state[:, -last_state_index:, :]
 
-            self.console_logger.debug("stsForward decoder source:  %1.3f", torch.sum(source.data))
-            self.console_logger.debug("stsForward decoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
+            # self.console_logger.debug("stsForward decoder source:  %1.3f", torch.sum(source.data))
+            # self.console_logger.debug("stsForward decoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
 
             return enc_h, last_layer_state

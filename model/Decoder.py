@@ -47,7 +47,7 @@ class Decoder(nn.Module):
 
         src_embed = nn.utils.rnn.pack_padded_sequence(src_embed, seq_length, batch_first=True)
 
-        self.console_logger.debug("decoder src_embed:  %1.3f", torch.sum(src_embed.data))
+        # self.console_logger.debug("decoder src_embed:  %1.3f", torch.sum(src_embed.data))
 
         enc_h, enc_h_t = self.gru(src_embed, enc_h_0)
 
@@ -62,7 +62,7 @@ class Decoder(nn.Module):
 
         last_layer_state = unsorted_state[:, -last_state_index:, :]
 
-        self.console_logger.debug("decoder source:  %1.3f", torch.sum(target.data))
-        self.console_logger.debug("decoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
+        # self.console_logger.debug("decoder source:  %1.3f", torch.sum(target.data))
+        # self.console_logger.debug("decoder last_layer_state:  %1.3f", torch.sum(last_layer_state.data))
 
         return enc_h, last_layer_state
