@@ -126,10 +126,10 @@ class DataPreprocessor(object):
 
         return dataset_processed
 
-    def buildVocab(self, dataset):
+    def buildVocab(self, dataset1, dataset2):
         # Building field vocabulary
-        self.src_field.build_vocab(dataset, min_freq=3, max_size=500000)
-        self.trg_field.build_vocab(dataset, min_freq=3, max_size=500000)
+        self.src_field.build_vocab(dataset1, dataset2, min_freq=3, max_size=500000)
+        self.trg_field.build_vocab(dataset1, min_freq=3, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
         vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,

@@ -63,7 +63,7 @@ def main(args):
     train_dataset = train_dp.getOneDataset(args.train_path, train_file, src_lang, trg_lang, max_len)
 
     # Building vocab
-    vocabs = train_dp.buildVocab(train_dataset)
+    vocabs = train_dp.buildVocab(train_dataset, sts_dataset)
 
     val_dp.src_field.vocab = train_dp.src_field.vocab
     val_dp.trg_field.vocab = train_dp.trg_field.vocab
