@@ -68,8 +68,6 @@ class Seq2Seq(nn.Module):
         # self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
 
         loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
-        self.console_logger.debug('bi_enc_h_t_0 {0}'.format(bi_enc_h_t.data[0].cpu().numpy()))
-        self.console_logger.debug('bi_enc_h_t_1 {0}'.format(bi_enc_h_t.data[1].cpu().numpy()))
         loss = -1 * loss
         for x in range(0, loss.size()[0]):
             loss[x, x] = - loss[x, x]
@@ -78,6 +76,13 @@ class Seq2Seq(nn.Module):
         nn_correlation = []
         for x in range(0, loss.size()[0]):
             nn_correlation.append(sigmoidLoss[x, x].data[0] * 5)
+
+        self.console_logger.debug('bi_enc_h_t_0 {0}'.format(bi_enc_h_t.data[0].cpu().numpy()))
+        self.console_logger.debug('bi_dec_h_t_0 {0}'.format(bi_dec_h_t.data[0].cpu().numpy()))
+        self.console_logger.debug('loss h_t_0 {0}'.format(sigmoidLoss[0][0].data[0]))
+        self.console_logger.debug('bi_enc_h_t_1 {0}'.format(bi_enc_h_t.data[1].cpu().numpy()))
+        self.console_logger.debug('bi_dec_h_t_1 {0}'.format(bi_dec_h_t.data[1].cpu().numpy()))
+        self.console_logger.debug('loss h_t_1 {0}'.format(sigmoidLoss[1][1].data[0]))
 
         logLoss = torch.log(sigmoidLoss)
         diagonalLoss = 0
