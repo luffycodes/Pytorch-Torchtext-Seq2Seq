@@ -112,7 +112,7 @@ class Trainer(object):
                 batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
                 _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
-                                                                   trg_length.tolist())
+                                                                     trg_length.tolist())
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -157,6 +157,7 @@ class Trainer(object):
         sts_diagonal_loss = AverageMeter()
         correlation_meter = AverageMeter()
         start_time = time.time()
+        nn_correlation = []
 
         for i, batch in enumerate(self.sts_loader):
             src_input = batch.src[0]
@@ -166,15 +167,22 @@ class Trainer(object):
 
             batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
-            nn_correlation, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
-                                                                              trg_length.tolist(), sts=True)
+            nn_correlation_batch, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(),
+                                                                                    trg_input,
+                                                                                    trg_length.tolist(), sts=True)
 
             sts_loss.update(loss.data[0], 1)
             sts_diagonal_loss.update(diagonalLoss.data[0], 1)
-            correlation = pearson_correlation(
-                self.correlation[(i * batch_size):(min((i + 1) * batch_size, len(self.correlation)))],
-                nn_correlation)
-            correlation_meter.update(correlation, 1)
+
+            for j in range(len(nn_correlation_batch)):
+                nn_correlation.append(nn_correlation_batch[j])
+
+        for k in range(len(nn_correlation)):
+            if k % 10 == 0:
+                self.console_logger.debug('sts correlation %d, %1.3f, %1.3f', k, nn_correlation[k], self.correlation[k])
+
+        correlation = pearson_correlation(self.correlation, nn_correlation)
+        correlation_meter.update(correlation, 1)
 
         self.log_sts_result(epoch, train_iter, sts_loss.avg, start_time)
 
@@ -207,7 +215,7 @@ class Trainer(object):
             batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
             _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
-                                                   trg_length.tolist())
+                                                                 trg_length.tolist())
 
             val_loss.update(loss.data[0], 1)
             val_diagonal_loss.update(diagonalLoss.data[0], 1)
