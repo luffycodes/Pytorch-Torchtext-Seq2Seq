@@ -64,8 +64,10 @@ def main(args):
 
     # Building vocab
     vocabs = train_dp.buildVocab(train_dataset)
+
     val_dp.src_field.vocab = train_dp.src_field.vocab
-    val_dp.trg_field.vocab = train_dp.src_field.vocab
+    val_dp.trg_field.vocab = train_dp.trg_field.vocab
+
     sts_dp.src_field.vocab = train_dp.src_field.vocab
     sts_dp.trg_field.vocab = train_dp.src_field.vocab
 
