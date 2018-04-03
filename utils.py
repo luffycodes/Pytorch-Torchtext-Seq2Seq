@@ -1,4 +1,5 @@
 import random
+import math
 
 import torch
 from torch.autograd import Variable
@@ -59,6 +60,25 @@ def sort_batch_by_length(tensor: torch.autograd.Variable, sequence_lengths: torc
     restoration_indices = index_range.index_select(0, reverse_mapping)
 
     return sorted_tensor, sorted_sequence_lengths, restoration_indices, permutation_index
+
+
+def pearson_correlation(numbers_x, numbers_y):
+    mean_x = sum(numbers_x) / len(numbers_x)
+    mean_y = sum(numbers_y) / len(numbers_y)
+
+    subtracted_mean_x = [i - mean_x for i in numbers_x]
+    subtracted_mean_y = [i - mean_y for i in numbers_y]
+
+    x_times_y = [a * b for a, b in list(zip(subtracted_mean_x, subtracted_mean_y))]
+
+    x_squared = [i * i for i in subtracted_mean_x]
+    y_squared = [i * i for i in subtracted_mean_y]
+
+    return sum(x_times_y) / math.sqrt(sum(x_squared) * sum(y_squared))
+
+
+if __name__ == '__main__':
+    print(pearson_correlation([5.000, 4.750, 5.000, 2.400, 2.750], [3.4, 2.3, 4.0, 3.2, 3.1]))
 
 
 class AverageMeter(object):

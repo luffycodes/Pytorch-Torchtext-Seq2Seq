@@ -28,20 +28,46 @@ def main(args):
     console_logger.propagate = False
 
     # Load dataset
-    train_file = os.path.join(args.data_path, "data_{}_{}_{}_{}.json".format(args.dataset, args.src_lang,
-                                                                             args.trg_lang, args.max_len))
-    val_file = os.path.join(args.data_path, "data_dev_{}_{}_{}.json".format(args.src_lang, args.trg_lang, args.max_len))
-
     start_time = time.time()
-    if os.path.isfile(train_file) and os.path.isfile(val_file):
-        console_logger.debug("Loading data..")
-        dp = DataPreprocessor(args.src_lang, args.trg_lang)
-        train_dataset, val_dataset, vocabs = dp.load_data(train_file, val_file)
-    else:
-        console_logger.debug("Preprocessing data..")
-        dp = DataPreprocessor(args.src_lang, args.trg_lang)
-        train_dataset, val_dataset, vocabs = dp.preprocess(args.train_path, args.val_path, train_file, val_file,
-                                                           args.src_lang, args.trg_lang, args.max_len)
+    max_len = args.max_len
+
+    # Read correlation file
+    correlation = []
+    correlation_file_path = os.path.join(args.data_path, "correlation.txt")
+    with open(correlation_file_path) as correlation_file:
+        for line in correlation_file:
+            correlation.append(float(line))
+
+    # STS dataset
+    sts_dp = DataPreprocessor()
+    sts_dp.src_field, sts_dp.trg_field = generate_fields(args.sts_src_lang, args.sts_src_lang)
+    sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
+    sts_dataset = sts_dp.getOneDataset(args.sts_path, sts_file, args.sts_src_lang, args.sts_trg_lang, max_len)
+    sts_loader = dt.BucketIterator(dataset=sts_dataset, batch_size=args.batch_size,
+                                   repeat=False, shuffle=False, sort_within_batch=True,
+                                   sort_key=lambda x: len(x.src), device=args.gpu_num)
+
+    src_lang = args.src_lang
+    trg_lang = args.trg_lang
+
+    # Validation dataset
+    val_dp = DataPreprocessor()
+    val_dp.src_field, val_dp.trg_field = generate_fields(args.src_lang, args.trg_lang)
+    val_file = os.path.join(args.data_path, "data_dev_{}_{}_{}.json".format(src_lang, trg_lang, max_len))
+    val_dataset = val_dp.getOneDataset(args.val_path, val_file, src_lang, trg_lang, max_len)
+
+    # Training dataset
+    train_dp = DataPreprocessor()
+    train_dp.src_field, train_dp.trg_field = generate_fields(args.src_lang, args.trg_lang)
+    train_file = os.path.join(args.data_path, "data_{}_{}_{}_{}.json".format(args.dataset, src_lang, trg_lang, max_len))
+    train_dataset = train_dp.getOneDataset(args.train_path, train_file, src_lang, trg_lang, max_len)
+
+    # Building vocab
+    vocabs = train_dp.buildVocab(train_dataset)
+    val_dp.src_field.vocab = train_dp.src_field.vocab
+    val_dp.trg_field.vocab = train_dp.src_field.vocab
+    sts_dp.src_field.vocab = train_dp.src_field.vocab
+    sts_dp.trg_field.vocab = train_dp.src_field.vocab
 
     console_logger.debug("Elapsed Time: %1.3f \n" % (time.time() - start_time))
 
@@ -57,7 +83,7 @@ def main(args):
                                    repeat=False, shuffle=True, sort_within_batch=True,
                                    sort_key=lambda x: len(x.src), device=args.gpu_num)
 
-    trainer = Trainer(train_loader, val_loader, vocabs, args)
+    trainer = Trainer(train_loader, val_loader, sts_loader, vocabs, correlation, args)
     trainer.train()
 
 
@@ -81,6 +107,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='europarl')
     parser.add_argument('--src_lang', type=str, default='en')
     parser.add_argument('--trg_lang', type=str, default='fr')
+    parser.add_argument('--sts_src_lang', type=str, default='en')
+    parser.add_argument('--sts_trg_lang', type=str, default='fr')
     parser.add_argument('--max_len', type=int, default=70)
 
     # Model hyper-parameters
@@ -99,8 +127,10 @@ if __name__ == '__main__':
     data = config[MACHINE]['translation_data_location']
     parser.add_argument('--data_path', type=str, default=('%s/' % data))
     args = parser.parse_args()
-    parser.add_argument('--train_path', type=str, default=('%s/training/europarl-v7.%s-%s' % (data, args.trg_lang, args.src_lang)))
+    parser.add_argument('--train_path', type=str,
+                        default=('%s/training/europarl-v7.%s-%s' % (data, args.trg_lang, args.src_lang)))
     parser.add_argument('--val_path', type=str, default=('%s/dev/newstest2013' % data))
+    parser.add_argument('--sts_path', type=str, default=('%s/sts/sts' % data))
 
     model_results = config[MACHINE]['translation_model_location']
     parser.add_argument('--log_path', type=str, default=('%s/' % model_results))

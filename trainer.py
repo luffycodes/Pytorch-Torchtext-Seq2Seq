@@ -22,7 +22,7 @@ from bleu import *
 
 
 class Trainer(object):
-    def __init__(self, train_loader, val_loader, vocabs, args):
+    def __init__(self, train_loader, val_loader, sts_loader, vocabs, correlation, args):
 
         # Language setting
         self.max_len = args.max_len
@@ -30,6 +30,7 @@ class Trainer(object):
         # Data Loader
         self.train_loader = train_loader
         self.val_loader = val_loader
+        self.sts_loader = sts_loader
 
         # Path
         self.data_path = args.data_path
@@ -62,6 +63,9 @@ class Trainer(object):
             torch.cuda.set_device(args.gpu_num)
 
         self.build_model(vocabs)
+
+        # STS
+        self.correlation = correlation
 
     def build_model(self, vocabs):
         # build dictionaries
@@ -139,8 +143,52 @@ class Trainer(object):
                     self.diagonal_loss.reset()
                     start_time = time.time()
 
+                if i % 1000 == 0 and i != 0:
+                    self.stsEval(epoch, i)
+
             self.log_train_result(epoch, i, start_time)
             self.eval(epoch, i)
+
+    def stsEval(self, epoch, train_iter):
+        self.console_logger.debug("entering sts code")
+        self.model.eval()
+
+        sts_loss = AverageMeter()
+        sts_diagonal_loss = AverageMeter()
+        correlation_meter = AverageMeter()
+        start_time = time.time()
+
+        for i, batch in enumerate(self.sts_loader):
+            src_input = batch.src[0]
+            src_length = batch.src[1]
+            trg_input = batch.trg[0]
+            trg_length = batch.trg[1]
+
+            batch_size, trg_len = trg_input.size(0), trg_input.size(1)
+
+            nn_correlation, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
+                                                                              trg_length.tolist(), sts=True)
+
+            sts_loss.update(loss.data[0], 1)
+            sts_diagonal_loss.update(diagonalLoss.data[0], 1)
+            correlation = pearson_correlation(
+                self.correlation[(i * batch_size):(min((i + 1) * batch_size, len(self.correlation)))],
+                nn_correlation)
+            correlation_meter.update(correlation, 1)
+
+        self.log_sts_result(epoch, train_iter, sts_loss.avg, start_time)
+
+        # Logging tensorboard
+        info = {
+            'sts_loss': sts_loss.avg,
+            'sts_diagonal_loss': sts_diagonal_loss.avg,
+            'sts_negative_sample': sts_loss.avg - sts_diagonal_loss.avg,
+            'sts_correlation': correlation_meter.avg,
+        }
+
+        self.tf_log.add_scalars('sts loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
+
+        self.console_logger.debug("exiting sts code")
 
     def eval(self, epoch, train_iter):
         self.console_logger.debug("entering validation code")
@@ -194,6 +242,13 @@ class Trainer(object):
 
     def log_valid_result(self, epoch, train_iter, val_loss, start_time):
         message = "Validation $#$ Epoch: %d $#$ iter: %d $#$ validation_loss: %1.3f $#$ training_loss: %1.3f elapsed: " \
+                  "%1.3f " % (
+                      epoch, train_iter, val_loss, self.train_loss.avg, time.time() - start_time)
+
+        self.console_logger.debug(message)
+
+    def log_sts_result(self, epoch, train_iter, val_loss, start_time):
+        message = "STS $#$ Epoch: %d $#$ iter: %d $#$ validation_loss: %1.3f $#$ training_loss: %1.3f elapsed: " \
                   "%1.3f " % (
                       epoch, train_iter, val_loss, self.train_loss.avg, time.time() - start_time)
 

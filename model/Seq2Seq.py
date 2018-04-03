@@ -21,11 +21,45 @@ class Seq2Seq(nn.Module):
 
         self.console_logger = logging.getLogger()
 
-    def forward(self, source, src_length=None, target=None, trg_length=None):
+    def forward(self, source, src_length=None, target=None, trg_length=None, sts=False):
+        if not sts:
+            batch_size = source.size(0)
+
+            enc_h, enc_h_t = self.encoder(source, src_length)
+            dec_h, dec_h_t = self.decoder(target, trg_length)
+
+            bi_enc_h_t = torch.sum(enc_h_t, dim=1)
+            bi_dec_h_t = torch.sum(dec_h_t, dim=1)
+
+            self.console_logger.debug("Seq2Seq bi_enc_h_t:  %1.3f", torch.sum(bi_enc_h_t.data))
+            self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
+
+            loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
+            loss = -1 * loss
+            for x in range(0, loss.size()[0]):
+                loss[x, x] = - loss[x, x]
+
+            logLoss = torch.log(torch.sigmoid(loss))
+
+            diagonalLoss = 0
+            for x in range(0, loss.size()[0]):
+                logLoss[x, x] = 10 * logLoss[x, x]
+                diagonalLoss += logLoss[x, x]
+
+            logLoss = torch.sum(logLoss)
+            logLoss = -1 * logLoss / batch_size
+            diagonalLoss = -1 * diagonalLoss / batch_size
+
+            return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
+        else:
+            nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss = self.stsForward(source, src_length, target, trg_length)
+            return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss
+
+    def stsForward(self, source, src_length=None, target=None, trg_length=None):
         batch_size = source.size(0)
 
-        enc_h, enc_h_t = self.encoder(source, src_length)
-        dec_h, dec_h_t = self.decoder(target, trg_length)
+        enc_h, enc_h_t = self.encoder(source, src_length, sts=True, sort=False)
+        dec_h, dec_h_t = self.encoder(target, trg_length, sts=True, sort=True)
 
         bi_enc_h_t = torch.sum(enc_h_t, dim=1)
         bi_dec_h_t = torch.sum(dec_h_t, dim=1)
@@ -38,8 +72,12 @@ class Seq2Seq(nn.Module):
         for x in range(0, loss.size()[0]):
             loss[x, x] = - loss[x, x]
 
-        logLoss = torch.log(torch.sigmoid(loss))
+        sigmoidLoss = torch.sigmoid(loss)
+        nn_correlation = []
+        for x in range(0, loss.size()[0]):
+            nn_correlation.append(sigmoidLoss[x, x].data[0] * 5)
 
+        logLoss = torch.log(sigmoidLoss)
         diagonalLoss = 0
         for x in range(0, loss.size()[0]):
             logLoss[x, x] = 10 * logLoss[x, x]
@@ -49,7 +87,7 @@ class Seq2Seq(nn.Module):
         logLoss = -1 * logLoss / batch_size
         diagonalLoss = -1 * diagonalLoss / batch_size
 
-        return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
+        return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss
 
     @staticmethod
     def plotInternals(epoch, i, writer, iter_per_epoch, target, bi_dec_h_t, source, bi_enc_h_t):

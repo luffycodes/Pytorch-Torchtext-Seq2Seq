@@ -13,35 +13,6 @@ EOS_WORD = '<EOS>'
 PAD_WORD = '<PAD>'
 
 
-class MaxlenTranslationDataset(data.Dataset):
-    # Code modified from
-    # https://github.com/pytorch/text/blob/master/torchtext/datasets/translation.py
-    # to be able to control the max length of the source and target sentences
-
-    def __init__(self, path, exts, fields, max_len=None, **kwargs):
-
-        if not isinstance(fields[0], (tuple, list)):
-            fields = [('src', fields[0]), ('trg', fields[1])]
-
-        src_path, trg_path = tuple(os.path.expanduser(path + x) for x in exts)
-
-        examples = []
-        with open(src_path) as src_file, open(trg_path) as trg_file:
-            for src_line, trg_line in tqdm(zip(src_file, trg_file)):
-                src_line, trg_line = src_line.split(' '), trg_line.split(' ')
-                if max_len is not None:
-                    src_line = src_line[:max_len]
-                    src_line = str(' '.join(src_line))
-                    trg_line = trg_line[:max_len]
-                    trg_line = str(' '.join(trg_line))
-
-                if src_line != '' and trg_line != '':
-                    examples.append(data.Example.fromlist(
-                        [src_line, trg_line], fields))
-
-        super(MaxlenTranslationDataset, self).__init__(examples, fields, **kwargs)
-
-
 def get_tokenizer(lang):
     spacy_lang = spacy.load(lang)
     return lambda s: [tok.text for tok in spacy_lang.tokenizer(s)]
@@ -72,62 +43,101 @@ def save_data(data_file, dataset):
     torch.save(dataset, data_file)
 
 
+class MaxlenTranslationDataset(data.Dataset):
+    # Code modified from
+    # https://github.com/pytorch/text/blob/master/torchtext/datasets/translation.py
+    # to be able to control the max length of the source and target sentences
+
+    def __init__(self, path, exts, fields, max_len=None, **kwargs):
+
+        if not isinstance(fields[0], (tuple, list)):
+            fields = [('src', fields[0]), ('trg', fields[1])]
+
+        src_path, trg_path = tuple(os.path.expanduser(path + x) for x in exts)
+
+        examples = []
+        with open(src_path) as src_file, open(trg_path) as trg_file:
+            for src_line, trg_line in tqdm(zip(src_file, trg_file)):
+                src_line, trg_line = src_line.split(' '), trg_line.split(' ')
+                if max_len is not None:
+                    src_line = src_line[:max_len]
+                    src_line = str(' '.join(src_line))
+                    trg_line = trg_line[:max_len]
+                    trg_line = str(' '.join(trg_line))
+
+                if src_line != '' and trg_line != '':
+                    examples.append(data.Example.fromlist(
+                        [src_line, trg_line], fields))
+
+        super(MaxlenTranslationDataset, self).__init__(examples, fields, **kwargs)
+
+
 class DataPreprocessor(object):
-    def __init__(self, src_lang, trg_lang):
-        self.src_field, self.trg_field = generate_fields(src_lang, trg_lang)
+    def __init__(self):
         self.logger = logging.getLogger()
+        self.src_field = None
+        self.trg_field = None
+        self.console_logger = logging.getLogger()
 
-    def preprocess(self, train_path, val_path, train_file, val_file, src_lang, trg_lang, max_len=None):
-        # Generating torchtext dataset class
-        self.logger.debug("Preprocessing train dataset...")
-        train_dataset = self.generate_data(train_path, src_lang, trg_lang, max_len)
+    def getDatasets(self, args):
+        src_lang = args.src_lang
+        trg_lang = args.trg_lang
+        max_len = args.max_len
 
-        self.logger.debug("Saving train dataset...")
-        save_data(train_file, train_dataset)
+        val_file = os.path.join(args.data_path,
+                                "data_dev_{}_{}_{}.json".format(src_lang, trg_lang, max_len))
 
-        self.logger.debug("Preprocessing validation dataset...")
-        val_dataset = self.generate_data(val_path, src_lang, trg_lang, max_len)
+        val_dataset = self.getOneDataset(args.val_path, val_file, src_lang, trg_lang, max_len)
 
-        self.logger.debug("Saving validation dataset...")
-        save_data(val_file, val_dataset)
+        train_file = os.path.join(args.data_path, "data_{}_{}_{}_{}.json".format(args.dataset, src_lang,
+                                                                                 trg_lang, max_len))
+        train_dataset = self.getOneDataset(args.train_path, train_file, src_lang, trg_lang, max_len)
 
-        # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
-        self.trg_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
+        sts_file = os.path.join(args.data_path, "data_sts_{}_{}_{}.json".format(src_lang, trg_lang, max_len))
+        sts_dataset = self.getOneDataset(args.sts_path, sts_file, args.sts_src_lang, args.sts_trg_lang, max_len)
 
-        src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
+        return train_dataset, val_dataset, sts_dataset
 
-        vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,
-                  'src_inv_vocab': src_inv_vocab, 'trg_inv_vocab': trg_inv_vocab}
+    def getOneDataset(self, dataset_path, dataset_processed_file, src_lang, trg_lang, max_len):
+        if os.path.isfile(dataset_processed_file):
+            self.console_logger.debug("loading preprocessed data from file path: %s", dataset_processed_file)
+            return self.loadDataset(dataset_processed_file)
+        else:
+            self.console_logger.debug("reading data for first time from file path: %s", dataset_path)
+            return self.preprocess(dataset_path, dataset_processed_file, src_lang, trg_lang, max_len)
 
-        return train_dataset, val_dataset, vocabs
+    def preprocess(self, dataset_path, dataset_processed_file, src_lang, trg_lang, max_len=None):
+        self.logger.debug("Preprocessing dataset from file path: %s", dataset_path)
+        dataset = self.getMaxlenTranslationDataset(dataset_path, src_lang, trg_lang, max_len)
 
-    def load_data(self, train_file, val_file):
+        self.logger.debug("Saving dataset to file: %s", dataset_processed_file)
+        save_data(dataset_processed_file, dataset)
+
+        return dataset
+
+    def loadDataset(self, dataset_processed_file):
         # Loading saved data
-        train_dataset = torch.load(train_file)
-        train_examples = train_dataset['examples']
-
-        val_dataset = torch.load(val_file)
-        val_examples = val_dataset['examples']
+        dataset_processed = torch.load(dataset_processed_file)
+        dataset_examples = dataset_processed['examples']
 
         # Generating torchtext dataset class
         fields = [('src', self.src_field), ('trg', self.trg_field)]
-        train_dataset = data.Dataset(fields=fields, examples=train_examples)
-        val_dataset = data.Dataset(fields=fields, examples=val_examples)
+        dataset_processed = data.Dataset(fields=fields, examples=dataset_examples)
 
+        return dataset_processed
+
+    def buildVocab(self, dataset):
         # Building field vocabulary
-        self.src_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
-        self.trg_field.build_vocab(train_dataset, min_freq=3, max_size=500000)
-
-        # self.src_field.vocab.load_vectors('fasttext.en.300d')
+        self.src_field.build_vocab(dataset, min_freq=3, max_size=500000)
+        self.trg_field.build_vocab(dataset, min_freq=3, max_size=500000)
 
         src_vocab, trg_vocab, src_inv_vocab, trg_inv_vocab = self.generate_vocabs()
         vocabs = {'src_vocab': src_vocab, 'trg_vocab': trg_vocab,
                   'src_inv_vocab': src_inv_vocab, 'trg_inv_vocab': trg_inv_vocab}
 
-        return train_dataset, val_dataset, vocabs
+        return vocabs
 
-    def generate_data(self, data_path, src_lang, trg_lang, max_len=None):
+    def getMaxlenTranslationDataset(self, data_path, src_lang, trg_lang, max_len=None):
         exts = ('.' + src_lang, '.' + trg_lang)
 
         dataset = MaxlenTranslationDataset(
