@@ -155,7 +155,6 @@ class Trainer(object):
 
         sts_loss = AverageMeter()
         sts_diagonal_loss = AverageMeter()
-        correlation_meter = AverageMeter()
         start_time = time.time()
         nn_correlation = []
 
@@ -182,7 +181,6 @@ class Trainer(object):
                 self.console_logger.debug('sts correlation %d, %d, %d, %1.3f, %1.3f', epoch, train_iter, k, nn_correlation[k], self.correlation[k])
 
         correlation = pearson_correlation(self.correlation, nn_correlation)
-        correlation_meter.update(correlation, 1)
 
         self.log_sts_result(epoch, train_iter, sts_loss.avg, start_time)
 
@@ -191,10 +189,10 @@ class Trainer(object):
             'sts_loss': sts_loss.avg,
             'sts_diagonal_loss': sts_diagonal_loss.avg,
             'sts_negative_sample': sts_loss.avg - sts_diagonal_loss.avg,
-            'sts_correlation': correlation_meter.avg,
+            'sts_correlation': correlation,
         }
 
-        self.tf_log.add_scalars('sts loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
+        self.tf_log.add_scalars('sts summary loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
 
         self.console_logger.debug("exiting sts code")
 
