@@ -43,9 +43,8 @@ def main(args):
     sts_dp.src_field, sts_dp.trg_field = generate_fields(args.sts_src_lang, args.sts_src_lang)
     sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
     sts_dataset = sts_dp.getOneDataset(args.sts_path, sts_file, args.sts_src_lang, args.sts_trg_lang, max_len)
-    sts_loader = dt.BucketIterator(dataset=sts_dataset, batch_size=args.batch_size,
-                                   repeat=False, shuffle=False, sort_within_batch=True,
-                                   sort_key=lambda x: len(x.src), device=args.gpu_num)
+    sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
+                             repeat=False, shuffle=False, device=args.gpu_num)
 
     src_lang = args.src_lang
     trg_lang = args.trg_lang

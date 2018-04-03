@@ -192,7 +192,7 @@ class Trainer(object):
             'sts_correlation': correlation,
         }
 
-        self.tf_log.add_scalars('sts summary loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
+        self.tf_log.add_scalars('sts_summary_loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)
 
         self.console_logger.debug("exiting sts code")
 

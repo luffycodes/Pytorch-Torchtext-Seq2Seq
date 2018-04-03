@@ -58,7 +58,7 @@ class Seq2Seq(nn.Module):
     def stsForward(self, source, src_length=None, target=None, trg_length=None):
         batch_size = source.size(0)
 
-        enc_h, enc_h_t = self.encoder(source, src_length, sts=True, sort=False)
+        enc_h, enc_h_t = self.encoder(source, src_length, sts=True, sort=True)
         dec_h, dec_h_t = self.encoder(target, trg_length, sts=True, sort=True)
 
         bi_enc_h_t = torch.sum(enc_h_t, dim=1)
