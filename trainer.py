@@ -179,7 +179,7 @@ class Trainer(object):
 
         for k in range(len(nn_correlation)):
             if k % 10 == 0:
-                self.console_logger.debug('sts correlation %d, %1.3f, %1.3f', k, nn_correlation[k], self.correlation[k])
+                self.console_logger.debug('sts correlation %d, %d, %d, %1.3f, %1.3f', epoch, train_iter, k, nn_correlation[k], self.correlation[k])
 
         correlation = pearson_correlation(self.correlation, nn_correlation)
         correlation_meter.update(correlation, 1)
