@@ -74,7 +74,8 @@ def main(args):
 
     console_logger.debug("=========== Data Stat ===========")
     console_logger.debug("Train: %d", len(train_dataset))
-    console_logger.debug("val: %d", len(val_dataset))
+    console_logger.debug("Val: %d", len(val_dataset))
+    console_logger.debug("STS: %d", len(sts_dataset))
     console_logger.debug("=================================")
 
     train_loader = dt.BucketIterator(dataset=train_dataset, batch_size=args.batch_size,
