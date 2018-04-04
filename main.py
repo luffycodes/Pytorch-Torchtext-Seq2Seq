@@ -45,7 +45,7 @@ def main(args):
                   ("trg", sts_dp.trg_field),
                   ("sim", dt.Field(sequential=False, use_vocab=False))]
     sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
-    sts_dataset = dt.TabularDataset(path=args.data_path+"stsTab.txt", format="TSV", fields=sts_fields)
+    sts_dataset = dt.TabularDataset(path=args.data_path+"stsTab.txt", format="TSV", fields=sts_fields, device=args.gpu_num)
     sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
                              repeat=False, shuffle=False, device=args.gpu_num)
 
