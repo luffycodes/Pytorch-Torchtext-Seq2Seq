@@ -41,8 +41,11 @@ def main(args):
     # STS dataset
     sts_dp = DataPreprocessor()
     sts_dp.src_field, sts_dp.trg_field = generate_fields(args.sts_src_lang, args.sts_src_lang)
+    sts_fields = [("src", sts_dp.src_field),
+                  ("trg", sts_dp.trg_field),
+                  ("sim", dt.Field(sequential=False, use_vocab=False))]
     sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
-    sts_dataset = sts_dp.getOneDataset(args.sts_path, sts_file, args.sts_src_lang, args.sts_trg_lang, max_len)
+    sts_dataset = dt.TabularDataset(path=args.data_path+"stsTab.txt", format="TSV", fields=sts_fields)
     sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
                              repeat=False, shuffle=False, device=args.gpu_num)
 

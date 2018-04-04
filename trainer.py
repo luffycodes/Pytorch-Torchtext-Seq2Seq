@@ -155,6 +155,7 @@ class Trainer(object):
 
         sts_loss = AverageMeter()
         sts_diagonal_loss = AverageMeter()
+        nn_correlation_loss_meter = AverageMeter()
         start_time = time.time()
         nn_correlation = []
 
@@ -166,10 +167,13 @@ class Trainer(object):
 
             batch_size, trg_len = trg_input.size(0), trg_input.size(1)
 
-            nn_correlation_batch, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(),
+            nn_correlation_batch, nn_correlation_loss, dec_h_t, loss, diagonalLoss = self.model(src_input,
+                                                                                    src_length.tolist(),
                                                                                     trg_input,
-                                                                                    trg_length.tolist(), sts=True)
+                                                                                    trg_length.tolist(), sts=True,
+                                                                                    batch_sim=batch.sim)
 
+            nn_correlation_loss_meter.update(nn_correlation_loss.data[0], 1)
             sts_loss.update(loss.data[0], 1)
             sts_diagonal_loss.update(diagonalLoss.data[0], 1)
 
@@ -190,6 +194,7 @@ class Trainer(object):
             'sts_diagonal_loss': sts_diagonal_loss.avg,
             'sts_negative_sample': sts_loss.avg - sts_diagonal_loss.avg,
             'sts_correlation': correlation,
+            'nn_correlation_loss': nn_correlation_loss_meter.avg,
         }
 
         self.tf_log.add_scalars('sts_summary_loss', info, (epoch * self.iter_per_epoch) + train_iter + 1)

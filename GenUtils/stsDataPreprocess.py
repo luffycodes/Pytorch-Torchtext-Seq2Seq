@@ -3,6 +3,7 @@ import codecs
 src_sent = open('/home/zoro/Documents/OpenStaxData/Datasets/stsbenchmark/sts.en', 'w')
 trg_sent = open('/home/zoro/Documents/OpenStaxData/Datasets/stsbenchmark/sts.fr', 'w')
 correlation = open('/home/zoro/Documents/OpenStaxData/Datasets/stsbenchmark/correlation.txt', 'w')
+sts_tab = open('/home/zoro/Documents/OpenStaxData/Datasets/stsbenchmark/stsTab.txt', 'w')
 data = codecs.open('/home/zoro/Documents/OpenStaxData/Datasets/stsbenchmark/sts-train.csv', 'r', 'UTF-8')
 correlation_arr = []
 src_sent_arr = []
@@ -27,10 +28,16 @@ for i, line in enumerate(src_sent_arr):
         newLine = '\n'
     else:
         newLine = ''
-    correlation.write(sorted_correlation_arr[i]+newLine)
-    src_sent.write(sorted_src_sent_arr[i]+newLine)
-    trg_sent.write(sorted_trg_sent_arr[i]+newLine)
+    # correlation.write(sorted_correlation_arr[i]+newLine)
+    # src_sent.write(sorted_src_sent_arr[i]+newLine)
+    # trg_sent.write(sorted_trg_sent_arr[i]+newLine)
 
-correlation.close()
-src_sent.close()
-trg_sent.close()
+    # For Tab separated data
+    sts_tab.write(sorted_src_sent_arr[i]+'\t')
+    sts_tab.write(sorted_trg_sent_arr[i]+'\t')
+    sts_tab.write(str(int(float(sorted_correlation_arr[i]) * 100))+newLine)
+
+sts_tab.close()
+# correlation.close()
+# src_sent.close()
+# trg_sent.close()

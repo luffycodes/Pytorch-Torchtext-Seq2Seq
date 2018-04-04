@@ -21,7 +21,7 @@ class Seq2Seq(nn.Module):
 
         self.console_logger = logging.getLogger()
 
-    def forward(self, source, src_length=None, target=None, trg_length=None, sts=False):
+    def forward(self, source, src_length=None, target=None, trg_length=None, sts=False, batch_sim=None):
         if not sts:
             batch_size = source.size(0)
 
@@ -52,10 +52,10 @@ class Seq2Seq(nn.Module):
 
             return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
         else:
-            nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss = self.stsForward(source, src_length, target, trg_length)
+            nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss = self.stsForward(source, src_length, target, trg_length, batch_sim)
             return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss
 
-    def stsForward(self, source, src_length=None, target=None, trg_length=None):
+    def stsForward(self, source, src_length=None, target=None, trg_length=None, batch_sim=None):
         batch_size = source.size(0)
 
         enc_h, enc_h_t = self.encoder(source, src_length, sts=True, sort=True)
@@ -77,8 +77,11 @@ class Seq2Seq(nn.Module):
 
         sigmoidLoss = torch.sigmoid(loss)
         nn_correlation = []
+        nn_correlation_loss = 0
         for x in range(0, loss.size()[0]):
             nn_correlation.append(sigmoidLoss[x, x].data[0] * 5)
+            correlation_diff = sigmoidLoss[x, x] * 500 - batch_sim[x].data[0]
+            nn_correlation_loss = correlation_diff * correlation_diff
 
         self.console_logger.debug('bi_enc_h_t_0 {0}'.format(bi_enc_h_t.data[0].cpu().numpy()))
         self.console_logger.debug('bi_dec_h_t_0 {0}'.format(bi_dec_h_t.data[0].cpu().numpy()))
@@ -96,8 +99,9 @@ class Seq2Seq(nn.Module):
         logLoss = torch.sum(logLoss)
         logLoss = -1 * logLoss / batch_size
         diagonalLoss = -1 * diagonalLoss / batch_size
+        nn_correlation_loss = nn_correlation_loss / batch_size
 
-        return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss
+        return nn_correlation, nn_correlation_loss, dec_h_t, logLoss, diagonalLoss
 
     @staticmethod
     def plotInternals(epoch, i, writer, iter_per_epoch, target, bi_dec_h_t, source, bi_enc_h_t):
