@@ -151,7 +151,7 @@ class Trainer(object):
 
     def stsEval(self, epoch, train_iter):
         self.console_logger.debug("entering sts code")
-        self.model.eval()
+        self.model.train()
 
         sts_loss = AverageMeter()
         sts_diagonal_loss = AverageMeter()
@@ -172,6 +172,11 @@ class Trainer(object):
                                                                                     trg_input,
                                                                                     trg_length.tolist(), sts=True,
                                                                                     batch_sim=batch.sim)
+
+            self.optimizer.zero_grad()
+            nn_correlation_loss.backward()
+            torch.nn.utils.clip_grad_norm(self.model.parameters(), self.grad_clip)
+            self.optimizer.step()
 
             nn_correlation_loss_meter.update(nn_correlation_loss.data[0], 1)
             sts_loss.update(loss.data[0], 1)
