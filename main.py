@@ -87,7 +87,7 @@ def main(args):
                                      repeat=False, shuffle=True, sort_within_batch=True,
                                      sort_key=lambda x: len(x.src), device=args.gpu_num)
     val_loader = dt.BucketIterator(dataset=val_dataset, batch_size=args.batch_size,
-                                   repeat=False, shuffle=True, sort_within_batch=True,
+                                   repeat=False, shuffle=False, sort_within_batch=True,
                                    sort_key=lambda x: len(x.src), device=args.gpu_num)
 
     trainer = Trainer(train_loader, val_loader, sts_loader, vocabs, correlation, args)

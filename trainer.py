@@ -233,9 +233,9 @@ class Trainer(object):
 
             similarity = torch.sigmoid(torch.mm(enc_h_t, enc_h_t.transpose(0, 1)))
             for x in range(0, similarity.size()[0]):
-                self.console_logger.debug('epoch iter src trg sim  %d %d %d, %d, %1.3f', epoch, train_iter, batch.key[0], batch.key[x], similarity[0, x])
-                self.console_logger.debug('valid_enc_h_t_0 {0} {1} {2}'.format(epoch, train_iter, enc_h_t.data[0].cpu().numpy()))
-                self.console_logger.debug('valid_enc_h_t_0 {0} {1} {2}'.format(epoch, train_iter, enc_h_t.data[x].cpu().numpy()))
+                self.console_logger.debug('src trg epoch iter sim  %d %d %d, %d, %1.3f', batch.key[0], batch.key[x], epoch, train_iter, similarity[0, x])
+                self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[0].cpu().numpy()))
+                self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[x].cpu().numpy()))
 
             val_loss.update(loss.data[0], 1)
             val_diagonal_loss.update(diagonalLoss.data[0], 1)
