@@ -39,16 +39,17 @@ def main(args):
             correlation.append(float(line))
 
     # STS dataset
-    sts_dp = DataPreprocessor()
-    sts_dp.src_field, sts_dp.trg_field = generate_fields(args.sts_src_lang, args.sts_src_lang)
-    sts_fields = [("sim", dt.Field(sequential=False, use_vocab=False)),
-                  ("src", sts_dp.src_field),
-                  ("trg", sts_dp.trg_field),
-                  ]
-    sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
-    sts_dataset = dt.TabularDataset(path=args.data_path + "stsTab.txt", format="TSV", fields=sts_fields)
-    sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
-                             repeat=False, shuffle=False, device=args.gpu_num)
+    # sts_dp = DataPreprocessor()
+    # sts_dp.src_field, sts_dp.trg_field = generate_fields(args.sts_src_lang, args.sts_src_lang)
+    # sts_fields = [("sim", dt.Field(sequential=False, use_vocab=False)),
+    #               ("src", sts_dp.src_field),
+    #               ("trg", sts_dp.trg_field),
+    #               ]
+    # sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
+    # sts_dataset = dt.TabularDataset(path=args.data_path + "stsTab.txt", format="TSV", fields=sts_fields)
+    # sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
+    #                          repeat=False, shuffle=False, device=args.gpu_num)
+    sts_loader = None
 
     src_lang = args.src_lang
     trg_lang = args.trg_lang
@@ -57,29 +58,29 @@ def main(args):
     val_dp = DataPreprocessor()
     val_dp.src_field, val_dp.trg_field = generate_fields(args.src_lang, args.trg_lang)
     val_file = os.path.join(args.data_path, "data_dev_{}_{}_{}.json".format(src_lang, trg_lang, max_len))
-    val_dataset = val_dp.getOneDataset(args.val_path, val_file, src_lang, trg_lang, max_len)
+    val_dataset = val_dp.preprocess(args.val_path, val_file, src_lang, trg_lang, max_len, save=False)
 
     # Training dataset
     train_dp = DataPreprocessor()
     train_dp.src_field, train_dp.trg_field = generate_fields(args.src_lang, args.trg_lang)
     train_file = os.path.join(args.data_path, "data_{}_{}_{}_{}.json".format(args.dataset, src_lang, trg_lang, max_len))
-    train_dataset = train_dp.getOneDataset(args.train_path, train_file, src_lang, trg_lang, max_len)
+    train_dataset = train_dp.preprocess(args.train_path, train_file, src_lang, trg_lang, max_len, save=False)
 
     # Building vocab
-    vocabs = train_dp.buildVocab(train_dataset, sts_dataset)
+    vocabs = train_dp.buildVocab(train_dataset, val_dataset)
 
     val_dp.src_field.vocab = train_dp.src_field.vocab
     val_dp.trg_field.vocab = train_dp.trg_field.vocab
 
-    sts_dp.src_field.vocab = train_dp.src_field.vocab
-    sts_dp.trg_field.vocab = train_dp.src_field.vocab
+    # sts_dp.src_field.vocab = train_dp.src_field.vocab
+    # sts_dp.trg_field.vocab = train_dp.src_field.vocab
 
     console_logger.debug("Elapsed Time: %1.3f \n" % (time.time() - start_time))
 
     console_logger.debug("=========== Data Stat ===========")
     console_logger.debug("Train: %d", len(train_dataset))
     console_logger.debug("Val: %d", len(val_dataset))
-    console_logger.debug("STS: %d", len(sts_dataset))
+    # console_logger.debug("STS: %d", len(sts_dataset))
     console_logger.debug("=================================")
 
     train_loader = dt.BucketIterator(dataset=train_dataset, batch_size=args.batch_size,

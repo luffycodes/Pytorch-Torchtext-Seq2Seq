@@ -113,6 +113,9 @@ class Trainer(object):
 
                 _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                                      trg_length.tolist())
+                if i % 1000 == 0 and i !=0:
+                    self.console_logger.debug('train_enc_h_t_0 {0}'.format(enc_h_t.data[0].cpu().numpy()))
+                    self.console_logger.debug('train_dec_h_t_0 {0}'.format(enc_h_t.data[0].cpu().numpy()))
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -144,7 +147,8 @@ class Trainer(object):
                     start_time = time.time()
 
                 if i % 1000 == 0 and i != 0:
-                    self.stsEval(epoch, i)
+                    pass
+                    # self.stsEval(epoch, i)
 
             self.log_train_result(epoch, i, start_time)
             self.eval(epoch, i)
@@ -224,6 +228,10 @@ class Trainer(object):
 
             _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                                  trg_length.tolist())
+
+            similarity = torch.sigmoid(torch.mm(enc_h_t, enc_h_t.transpose(0, 1)))
+            for x in range(0, similarity.size()[0]):
+                self.console_logger.debug('epoch src trg sim %d %d, %d, %1.3f', epoch, batch.key[0], batch.key[x], similarity[0, x])
 
             val_loss.update(loss.data[0], 1)
             val_diagonal_loss.update(diagonalLoss.data[0], 1)

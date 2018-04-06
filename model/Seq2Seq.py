@@ -50,7 +50,7 @@ class Seq2Seq(nn.Module):
             logLoss = -1 * logLoss / batch_size
             diagonalLoss = -1 * diagonalLoss / batch_size
 
-            return enc_h_t, enc_h_t, dec_h_t, logLoss, diagonalLoss
+            return bi_enc_h_t, bi_enc_h_t, bi_dec_h_t, logLoss, diagonalLoss
         else:
             nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss = self.stsForward(source, src_length, target, trg_length, batch_sim)
             return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss

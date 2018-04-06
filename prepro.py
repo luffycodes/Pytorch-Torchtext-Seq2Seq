@@ -7,6 +7,7 @@ import spacy
 import os
 from tqdm import tqdm
 import logging
+from torchtext import data as dt
 
 SOS_WORD = '<SOS>'
 EOS_WORD = '<EOS>'
@@ -51,11 +52,12 @@ class MaxlenTranslationDataset(data.Dataset):
     def __init__(self, path, exts, fields, max_len=None, **kwargs):
 
         if not isinstance(fields[0], (tuple, list)):
-            fields = [('src', fields[0]), ('trg', fields[1])]
+            fields = [('src', fields[0]), ('trg', fields[1]), ('key', dt.Field(sequential=False, use_vocab=False))]
 
         src_path, trg_path = tuple(os.path.expanduser(path + x) for x in exts)
 
         examples = []
+        line = 0
         with open(src_path) as src_file, open(trg_path) as trg_file:
             for src_line, trg_line in tqdm(zip(src_file, trg_file)):
                 src_line, trg_line = src_line.split(' '), trg_line.split(' ')
@@ -67,7 +69,8 @@ class MaxlenTranslationDataset(data.Dataset):
 
                 if src_line != '' and trg_line != '':
                     examples.append(data.Example.fromlist(
-                        [src_line, trg_line], fields))
+                        [src_line, trg_line, line], fields))
+                line += 1
 
         super(MaxlenTranslationDataset, self).__init__(examples, fields, **kwargs)
 
@@ -106,12 +109,13 @@ class DataPreprocessor(object):
             self.console_logger.debug("reading data for first time from file path: %s", dataset_path)
             return self.preprocess(dataset_path, dataset_processed_file, src_lang, trg_lang, max_len)
 
-    def preprocess(self, dataset_path, dataset_processed_file, src_lang, trg_lang, max_len=None):
+    def preprocess(self, dataset_path, dataset_processed_file, src_lang, trg_lang, max_len=None, save=True):
         self.logger.debug("Preprocessing dataset from file path: %s", dataset_path)
         dataset = self.getMaxlenTranslationDataset(dataset_path, src_lang, trg_lang, max_len)
 
-        self.logger.debug("Saving dataset to file: %s", dataset_processed_file)
-        save_data(dataset_processed_file, dataset)
+        if save:
+            self.logger.debug("Saving dataset to file: %s", dataset_processed_file)
+            save_data(dataset_processed_file, dataset)
 
         return dataset
 
