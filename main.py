@@ -64,7 +64,7 @@ def main(args):
     train_dp = DataPreprocessor()
     train_dp.src_field, train_dp.trg_field = generate_fields(args.src_lang, args.trg_lang)
     train_file = os.path.join(args.data_path, "data_{}_{}_{}_{}.json".format(args.dataset, src_lang, trg_lang, max_len))
-    train_dataset = train_dp.preprocess(args.train_path, train_file, src_lang, trg_lang, max_len, save=False)
+    train_dataset = train_dp.getOneDataset(args.train_path, train_file, src_lang, trg_lang, max_len)
 
     # Building vocab
     vocabs = train_dp.buildVocab(train_dataset, val_dataset)
