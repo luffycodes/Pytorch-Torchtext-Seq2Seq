@@ -31,29 +31,38 @@ class Seq2Seq(nn.Module):
             bi_enc_h_t = torch.sum(enc_h_t, dim=1)
             bi_dec_h_t = torch.sum(dec_h_t, dim=1)
 
-            bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
-            bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
+            # bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
+            # bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
 
             # self.console_logger.debug("Seq2Seq bi_enc_h_t:  %1.3f", torch.sum(bi_enc_h_t.data))
             # self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
 
-            loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
-            loss = -1 * loss
-            for x in range(0, loss.size()[0]):
-                loss[x, x] = - loss[x, x]
+            # loss = torch.mm(bi_enc_h_t, bi_dec_h_t.transpose(0, 1))
 
-            logLoss = torch.log(torch.sigmoid(loss))
+            bi_enc_h_t_Minus_bi_dec_h_t = bi_enc_h_t - bi_dec_h_t
+            loss = torch.mm(bi_enc_h_t_Minus_bi_dec_h_t, bi_enc_h_t_Minus_bi_dec_h_t.transpose(0, 1))
+            nce_loss = 0
+
+            for x in range(0, loss.size()[0]):
+                rowLoss = 0
+                for y in range(0, loss.size()[0]):
+                    rowLoss += - loss[x, y]
+                rowLoss += 10 * loss[x, x]
+                if rowLoss < 0:
+                    rowLoss = 0
+                nce_loss += rowLoss
+
+            # logLoss = torch.log(torch.sigmoid(loss))
 
             diagonalLoss = 0
             for x in range(0, loss.size()[0]):
-                logLoss[x, x] = 10 * logLoss[x, x]
-                diagonalLoss += logLoss[x, x]
+                diagonalLoss += loss[x, x]
 
-            logLoss = torch.sum(logLoss)
-            logLoss = -1 * logLoss / batch_size
+            loss = torch.sum(loss)
+            loss = -1 * loss / batch_size
             diagonalLoss = -1 * diagonalLoss / batch_size
 
-            return bi_enc_h_t, bi_enc_h_t, bi_dec_h_t, logLoss, diagonalLoss
+            return bi_enc_h_t, bi_enc_h_t, bi_dec_h_t, nce_loss, diagonalLoss
         else:
             nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss = self.stsForward(source, src_length, target, trg_length, batch_sim)
             return nn_correlation, enc_h_t, dec_h_t, logLoss, diagonalLoss
