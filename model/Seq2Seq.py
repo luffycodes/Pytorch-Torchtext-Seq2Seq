@@ -31,8 +31,8 @@ class Seq2Seq(nn.Module):
             bi_enc_h_t = torch.sum(enc_h_t, dim=1)
             bi_dec_h_t = torch.sum(dec_h_t, dim=1)
 
-            # bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
-            # bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
+            bi_enc_h_t = bi_enc_h_t.div(bi_enc_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_enc_h_t))
+            bi_dec_h_t = bi_dec_h_t.div(bi_dec_h_t.norm(p=2, dim=1, keepdim=True).expand_as(bi_dec_h_t))
 
             # self.console_logger.debug("Seq2Seq bi_enc_h_t:  %1.3f", torch.sum(bi_enc_h_t.data))
             # self.console_logger.debug("Seq2Seq bi_dec_h_t:  %1.3f", torch.sum(bi_dec_h_t.data))
