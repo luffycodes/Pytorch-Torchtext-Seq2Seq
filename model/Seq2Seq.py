@@ -48,7 +48,7 @@ class Seq2Seq(nn.Module):
                 for y in range(0, loss.size()[0]):
                     rowLoss += - loss[x, y]
                 rowLoss += 10 * loss[x, x]
-                if rowLoss < 0:
+                if rowLoss.data[0] < 0:
                     rowLoss = 0
                 nce_loss += rowLoss
 
