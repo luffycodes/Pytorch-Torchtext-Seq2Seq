@@ -44,7 +44,7 @@ class Seq2Seq(nn.Module):
             nce_loss = 0
 
             for x in range(0, loss.size()[0]):
-                rowLoss = 0
+                rowLoss = 5
                 for y in range(0, loss.size()[0]):
                     rowLoss += - loss[x, y]
                 rowLoss += 10 * loss[x, x]
