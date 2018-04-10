@@ -127,7 +127,7 @@ class Trainer(object):
                 self.train_loss.update(loss.data[0], 1)
                 self.diagonal_loss.update(diagonalLoss.data[0], 1)
 
-                if i % 1000 == 0 and i != 0 and epoch > 0:
+                if i % 1000 == 0 and i != 0:
                     self.console_logger.debug("epoch:%d, i:%d, iter_per_epoch:%d", epoch, i, self.iter_per_epoch)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
@@ -231,11 +231,12 @@ class Trainer(object):
             _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                                  trg_length.tolist())
 
-            similarity = torch.sigmoid(torch.mm(enc_h_t, enc_h_t.transpose(0, 1)))
-            for x in range(0, similarity.size()[0]):
-                self.console_logger.debug('src trg epoch iter sim  %d %d %d, %d, %1.3f', batch.key[0], batch.key[x], epoch, train_iter, similarity[0, x])
-                self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[0].cpu().numpy()))
-                self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[x].cpu().numpy()))
+            if epoch > 0:
+                similarity = torch.sigmoid(torch.mm(enc_h_t, enc_h_t.transpose(0, 1)))
+                for x in range(0, similarity.size()[0]):
+                    self.console_logger.debug('src trg epoch iter sim  %d %d %d, %d, %1.3f', batch.key[0], batch.key[x], epoch, train_iter, similarity[0, x])
+                    self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[0].cpu().numpy()))
+                    self.console_logger.debug('valid_enc_h_t_0 {0}, {1}, {2}'.format(epoch, train_iter, enc_h_t.data[x].cpu().numpy()))
 
             val_loss.update(loss.data[0], 1)
             val_diagonal_loss.update(diagonalLoss.data[0], 1)
