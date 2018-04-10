@@ -113,7 +113,7 @@ class Trainer(object):
 
                 _, enc_h_t, dec_h_t, loss, diagonalLoss = self.model(src_input, src_length.tolist(), trg_input,
                                                                      trg_length.tolist())
-                if i % 1000 == 0 and i != 0:
+                if i % 10000 == 0 and i != 0:
                     self.console_logger.debug('train_enc_h_t_0 {0} {1} {2}'.format(epoch, i, enc_h_t.data[0].cpu().numpy()))
                     self.console_logger.debug('train_dec_h_t_0 {0} {1} {2}'.format(epoch, i, dec_h_t.data[0].cpu().numpy()))
                     self.console_logger.debug('train_enc_h_t_1 {0} {1} {2}'.format(epoch, i, enc_h_t.data[1].cpu().numpy()))
@@ -127,7 +127,7 @@ class Trainer(object):
                 self.train_loss.update(loss.data[0], 1)
                 self.diagonal_loss.update(diagonalLoss.data[0], 1)
 
-                if i % 1000 == 0 and i != 0:
+                if i % 1000 == 0 and i != 0 and epoch > 0:
                     self.console_logger.debug("epoch:%d, i:%d, iter_per_epoch:%d", epoch, i, self.iter_per_epoch)
                     self.log_train_result(epoch, i, start_time)
                     self.eval(epoch, i)
