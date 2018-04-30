@@ -33,7 +33,7 @@ def main(args):
 
     # Read correlation file
     correlation = []
-    correlation_file_path = os.path.join(args.data_path, "correlation.txt")
+    correlation_file_path = os.path.join(args.data_path, "correlation_freeans.txt")
     with open(correlation_file_path) as correlation_file:
         for line in correlation_file:
             correlation.append(float(line))
@@ -46,7 +46,7 @@ def main(args):
                   ("trg", sts_dp.trg_field),
                   ]
     sts_file = os.path.join(args.data_path, "data_sts_{}_{}.json".format(args.sts_src_lang, args.sts_trg_lang))
-    sts_dataset = dt.TabularDataset(path=args.data_path + "stsTab.txt", format="TSV", fields=sts_fields)
+    sts_dataset = dt.TabularDataset(path=args.data_path + "FreeFormCorrectAnsTab.csv", format="TSV", fields=sts_fields)
     sts_loader = dt.Iterator(dataset=sts_dataset, batch_size=args.batch_size,
                              repeat=False, shuffle=False, device=args.gpu_num)
 

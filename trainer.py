@@ -20,6 +20,8 @@ from utils import *
 from model.Seq2Seq import Seq2Seq
 from bleu import *
 
+import pandas as pd
+
 
 class Trainer(object):
     def __init__(self, train_loader, val_loader, sts_loader, vocabs, correlation, args):
@@ -185,9 +187,12 @@ class Trainer(object):
             for j in range(len(nn_correlation_batch)):
                 nn_correlation.append(nn_correlation_batch[j])
 
+        question_ans_cosine_df = pd.DataFrame(columns=['freeResponse', 'correctAnswer', 'score', 'cosine'])
         for k in range(len(nn_correlation)):
             if k % 10 == 0:
-                self.console_logger.debug('sts correlation %d, %d, %d, %1.3f, %1.3f', epoch, train_iter, k, nn_correlation[k], self.correlation[k])
+                self.console_logger.debug('sts correlation %d, %d, %d, %1.3f, %1.3f', epoch, train_iter, k, self.correlation[k], nn_correlation[k])
+            question_ans_cosine_df.loc[k] = ["dummy1", "dummy2", self.correlation[k], nn_correlation[k]]
+        question_ans_cosine_df.to_csv("freeResponseCorrelation_" + str(epoch) + "_" + str(train_iter) + ".csv", index=False)
 
         correlation = pearson_correlation(self.correlation, nn_correlation)
 
