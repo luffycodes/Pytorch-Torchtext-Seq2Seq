@@ -103,7 +103,7 @@ if __name__ == '__main__':
     if server:
         config.read('/root/pythonProjects/Pytorch-Torchtext-Seq2Seq/configFile.ini')
         MACHINE = "SERVER"
-        gpu = 2
+        gpu = 1
     else:
         config.read('/home/zoro/PycharmProjects/OtherGitRepo/Pytorch-Torchtext-Seq2Seq/configFile.ini')
         MACHINE = "DEFAULT"
